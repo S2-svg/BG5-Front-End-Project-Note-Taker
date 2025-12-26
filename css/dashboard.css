@@ -123,7 +123,7 @@ body {
 .logo-icon {
   width: 40px;
   height: 40px;
-  background: var(--primary-gradient);
+  background: var(--success);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -135,7 +135,7 @@ body {
 .logo-text {
   font-size: 1.8rem;
   font-weight: 800;
-  background: var(--primary-gradient);
+  background: var(--success);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -154,6 +154,12 @@ body {
   font-weight: 600;
 }
 
+#themeToggleBtn{
+  color: var(--success);
+}
+#exportBtn{
+  color: var(--success);
+}
 .category-item,
 .tag-item {
   display: flex;
@@ -164,7 +170,7 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 0.5rem;
-  color: var(--text-secondary);
+  color: var(--success);
 }
 
 .category-item:hover,
