@@ -94,11 +94,11 @@ function showAlert(type, message, containerSelector = "#alertContainer") {
         <button type="button" class="close-alert" aria-label="Close">&times;</button>
     `;
   container.prepend(alert);
-  // close handler
+
   alert.querySelector(".close-alert").addEventListener("click", () => {
     hideAlert(alert);
   });
-  // auto hide after 5s
+
   setTimeout(() => {
     if (alert.style.display !== "none") hideAlert(alert);
   }, 5000);
@@ -117,7 +117,7 @@ function setupInputAnimations() {
 }
 function setupSocialButtons() {
   const socialButtons = document.querySelectorAll(".btn-social");
-  // Hide social buttons if Firebase Auth isn't available
+
   if (!window.firebase || !firebase.auth) {
     const socialSection = document.querySelector(".social-login");
     if (socialSection) socialSection.style.display = "none";
@@ -131,7 +131,6 @@ function setupSocialButtons() {
     button.addEventListener("mouseleave", function () {
       this.style.boxShadow = "none";
     });
-    // click handler to trigger social auth
     button.addEventListener("click", function () {
       const provider = this.dataset.provider;
       if (!provider) return;
@@ -145,26 +144,28 @@ function setupLoginFormValidation() {
   if (!form) return;
   const email = form.querySelector("#email");
   const password = form.querySelector("#password");
-  const submit = form.querySelector("button[type=\"submit\"]");
+  const submit = form.querySelector('button[type="submit"]');
   if (!submit) return;
 
   function updateState() {
     const hasEmail = email && email.value && isValidEmail(email.value.trim());
-    const hasPassword = password && password.value && password.value.length >= 6;
+    const hasPassword =
+      password && password.value && password.value.length >= 6;
     submit.disabled = !(hasEmail && hasPassword);
   }
 
-  // Initialize state and attach listeners
   updateState();
   email && email.addEventListener("input", updateState);
   password && password.addEventListener("input", updateState);
 
-  // Prevent accidental submit when the button is disabled
   form.addEventListener("submit", function (e) {
     if (submit.disabled) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      showAlert("error", "Please enter a valid email and password (minimum 6 characters).");
+      showAlert(
+        "error",
+        "Please enter a valid email and password (minimum 6 characters)."
+      );
       return false;
     }
   });
@@ -188,7 +189,10 @@ async function signInWithProvider(providerName) {
     }
   } catch (err) {
     console.error("Provider creation failed:", err);
-    showAlert("error", "Social login is not available: provider initialization failed.");
+    showAlert(
+      "error",
+      "Social login is not available: provider initialization failed."
+    );
     return;
   }
 
@@ -222,36 +226,54 @@ async function signInWithProvider(providerName) {
       localStorage.setItem("users", JSON.stringify(users));
       existing = newUser;
     }
-    // mark session
+
     localStorage.setItem("currentUser", existing.email);
     showAlert("success", `Signed in with ${providerName} — redirecting...`);
-    const nextFromUrl =
-      sanitizeNextUrl(new URLSearchParams(location.search).get("next") || "index.html");
+    const nextFromUrl = sanitizeNextUrl(
+      new URLSearchParams(location.search).get("next") || "index.html"
+    );
     setTimeout(() => (location.href = nextFromUrl), 900);
   } catch (err) {
     console.error("Social sign-in failed:", err);
     const code = err && err.code ? err.code : null;
     const codePart = code ? ` (${code})` : "";
 
-    // If the popup is blocked or not supported, fallback to redirect flow
-    if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment" || code === "auth/popup-closed-by-user") {
+    if (
+      code === "auth/popup-blocked" ||
+      code === "auth/operation-not-supported-in-this-environment" ||
+      code === "auth/popup-closed-by-user"
+    ) {
       try {
-        showAlert("info", "Popup blocked or not supported — attempting redirect sign-in...");
+        showAlert(
+          "info",
+          "Popup blocked or not supported — attempting redirect sign-in..."
+        );
         await firebase.auth().signInWithRedirect(provider);
         return;
       } catch (redirErr) {
         console.error("Redirect sign-in failed:", redirErr);
-        showAlert("error", "Redirect sign-in failed: " + (redirErr.message || redirErr) + (redirErr.code ? ` (${redirErr.code})` : ""));
+        showAlert(
+          "error",
+          "Redirect sign-in failed: " +
+            (redirErr.message || redirErr) +
+            (redirErr.code ? ` (${redirErr.code})` : "")
+        );
         return;
       }
     }
 
     if (code === "auth/unauthorized-domain") {
-      showAlert("error", "Sign-in blocked: unauthorized domain. Add this domain to Firebase Console > Authentication > Authorized domains.");
+      showAlert(
+        "error",
+        "Sign-in blocked: unauthorized domain. Add this domain to Firebase Console > Authentication > Authorized domains."
+      );
       return;
     }
 
-    showAlert("error", "Social sign-in failed: " + (err.message || err) + codePart);
+    showAlert(
+      "error",
+      "Social sign-in failed: " + (err.message || err) + codePart
+    );
   }
 }
 function isValidEmail(email) {
@@ -260,15 +282,19 @@ function isValidEmail(email) {
 }
 
 function sanitizeNextUrl(next) {
-  // Avoid redirecting back to auth pages like signup/signin to prevent loops
   if (!next) return "index.html";
   try {
     const lower = String(next).toLowerCase();
-    if (lower.includes("signup") || lower.includes("singup") || lower.includes("signin")) {
+    if (
+      lower.includes("signup") ||
+      lower.includes("singup") ||
+      lower.includes("signin")
+    ) {
       return "index.html";
     }
-    // Basic security: disallow javascript: and data: URIs
-    if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "index.html";
+
+    if (lower.startsWith("javascript:") || lower.startsWith("data:"))
+      return "index.html";
     return next;
   } catch (err) {
     return "index.html";
@@ -281,7 +307,6 @@ function initializePage() {
   console.log("Initializing auth page...");
   setupInputAnimations();
   if (document.querySelector(".btn-social")) {
-    // Check Firebase availability and provide diagnostics to the user
     checkFirebaseAvailability();
     setupSocialButtons();
   }
@@ -291,11 +316,9 @@ function initializePage() {
   }
   const forms = document.querySelectorAll("form");
   forms.forEach((form) => {
-    // keep the default visual processing behavior
     form.addEventListener("submit", handleFormSubmit);
   });
 
-  // If we have a registration form, attach the stronger validation flow
   const registerForm = document.getElementById("registerForm");
   if (registerForm) {
     registerForm.addEventListener("submit", function (e) {
@@ -304,7 +327,7 @@ function initializePage() {
       handleRegisterSubmit(e);
     });
   }
-  // Attach login form handler if present
+
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
     loginForm.addEventListener("submit", function (e) {
@@ -312,7 +335,7 @@ function initializePage() {
       e.stopImmediatePropagation();
       handleLoginSubmit(e);
     });
-    // Enable live validation that controls the submit button
+
     setupLoginFormValidation();
   }
   const alerts = document.querySelectorAll(".alert");
@@ -324,7 +347,7 @@ function initializePage() {
     }, 5000);
   });
   console.log("Auth page initialized!");
-  // If a 'next' query parameter exists, let the user know they need to sign in first
+
   const urlParams = new URLSearchParams(location.search);
   const nextParam = urlParams.get("next");
   const createdParam = urlParams.get("created");
@@ -343,7 +366,6 @@ window.passwordUtils = {
   isValidPassword,
 };
 
-// Registration-specific submit handling and validation
 async function hashString(message) {
   const enc = new TextEncoder();
   const data = enc.encode(message);
@@ -352,31 +374,43 @@ async function hashString(message) {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Diagnostics: verify Firebase and providers and show helpful user-facing messages
 function checkFirebaseAvailability() {
   const socialSection = document.querySelector(".social-login");
   const noticeEl = document.getElementById("socialNotice");
   try {
-    // Prefer explicit global flag when available
-    if (typeof window.firebaseInitialized !== "undefined" && !window.firebaseInitialized) {
+    if (
+      typeof window.firebaseInitialized !== "undefined" &&
+      !window.firebaseInitialized
+    ) {
       if (noticeEl) {
         noticeEl.style.display = "block";
         noticeEl.className = "alert alert-info";
-        noticeEl.textContent = "Firebase is not configured. To enable Google/GitHub sign-in, paste your Firebase config into static/JS/firebase-init.js and enable providers in Firebase Console.";
+        noticeEl.textContent =
+          "Firebase is not configured. To enable Google/GitHub sign-in, paste your Firebase config into static/JS/firebase-init.js and enable providers in Firebase Console.";
       } else {
-        showAlert("warning", "Firebase not configured — social sign-in disabled.");
+        showAlert(
+          "warning",
+          "Firebase not configured — social sign-in disabled."
+        );
       }
       if (socialSection) socialSection.style.display = "none";
       return false;
     }
 
-    if (typeof window.firebaseAvailable !== "undefined" && !window.firebaseAvailable) {
+    if (
+      typeof window.firebaseAvailable !== "undefined" &&
+      !window.firebaseAvailable
+    ) {
       if (noticeEl) {
         noticeEl.style.display = "block";
         noticeEl.className = "alert alert-warning";
-        noticeEl.innerHTML = "Firebase Auth is not available. Ensure you included <code>firebase-auth-compat.js</code> and enabled providers in the Firebase console.";
+        noticeEl.innerHTML =
+          "Firebase Auth is not available. Ensure you included <code>firebase-auth-compat.js</code> and enabled providers in the Firebase console.";
       } else {
-        showAlert("warning", "Firebase Auth not available — social sign-in disabled.");
+        showAlert(
+          "warning",
+          "Firebase Auth not available — social sign-in disabled."
+        );
       }
       if (socialSection) socialSection.style.display = "none";
       return false;
@@ -386,15 +420,18 @@ function checkFirebaseAvailability() {
       if (noticeEl) {
         noticeEl.style.display = "block";
         noticeEl.className = "alert alert-warning";
-        noticeEl.innerHTML = "Firebase SDK appears missing or misloaded. Check browser console for details.";
+        noticeEl.innerHTML =
+          "Firebase SDK appears missing or misloaded. Check browser console for details.";
       } else {
-        showAlert("warning", "Firebase SDK not found — social sign-in is disabled.");
+        showAlert(
+          "warning",
+          "Firebase SDK not found — social sign-in is disabled."
+        );
       }
       if (socialSection) socialSection.style.display = "none";
       return false;
     }
 
-    // Try creating common providers – errors usually indicate misconfiguration
     try {
       new firebase.auth.GoogleAuthProvider();
       new firebase.auth.GithubAuthProvider();
@@ -403,27 +440,30 @@ function checkFirebaseAvailability() {
       if (noticeEl) {
         noticeEl.style.display = "block";
         noticeEl.className = "alert alert-warning";
-        noticeEl.innerHTML = "Social providers cannot be initialized. Check your Firebase project settings and make sure the providers (Google, GitHub) are enabled.";
+        noticeEl.innerHTML =
+          "Social providers cannot be initialized. Check your Firebase project settings and make sure the providers (Google, GitHub) are enabled.";
       } else {
-        showAlert("warning", "Social providers are not available. Check Firebase config/provider setup.");
+        showAlert(
+          "warning",
+          "Social providers are not available. Check Firebase config/provider setup."
+        );
       }
       if (socialSection) socialSection.style.display = "none";
       return false;
     }
 
-    // If everything looks fine, hide any previous notice
     if (noticeEl) {
       noticeEl.style.display = "none";
     }
 
-    // Everything looks OK
     return true;
   } catch (err) {
     console.error("Firebase availability check error:", err);
     if (noticeEl) {
       noticeEl.style.display = "block";
       noticeEl.className = "alert alert-warning";
-      noticeEl.textContent = "Social sign-in disabled due to an unexpected error (see console).";
+      noticeEl.textContent =
+        "Social sign-in disabled due to an unexpected error (see console).";
     }
     if (socialSection) socialSection.style.display = "none";
     return false;
@@ -464,14 +504,12 @@ async function handleRegisterSubmit(e) {
     return;
   }
 
-  // check for duplicate email
   const users = JSON.parse(localStorage.getItem("users") || "[]");
   if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
     showAlert("error", "An account with this email already exists.");
     return;
   }
 
-  // All good — show processing state
   handleFormSubmit({ target: form });
 
   try {
@@ -485,7 +523,7 @@ async function handleRegisterSubmit(e) {
     };
     users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
-    // Automatically sign the user in after registration
+
     try {
       localStorage.setItem("currentUser", newUser.email);
       localStorage.setItem("offlineMode", "false");
@@ -495,14 +533,15 @@ async function handleRegisterSubmit(e) {
 
     setTimeout(() => {
       showAlert("success", "Account created and signed in — redirecting...");
-      // clear form and reset meter
+
       form.reset();
       const meter = document.getElementById("strengthMeter");
       const text = document.getElementById("strengthText");
       if (meter) meter.style.width = "0%";
       if (text) text.textContent = "Password strength:";
-      // redirect to next (sanitized) or index
-      let nextFromUrl = new URLSearchParams(location.search).get("next") || "index.html";
+
+      let nextFromUrl =
+        new URLSearchParams(location.search).get("next") || "index.html";
       nextFromUrl = sanitizeNextUrl(nextFromUrl);
       setTimeout(() => {
         location.href = nextFromUrl;
@@ -514,7 +553,6 @@ async function handleRegisterSubmit(e) {
   }
 }
 
-// Login handling
 async function handleLoginSubmit(e) {
   const form = document.getElementById("loginForm");
   if (!form) return;
@@ -545,7 +583,6 @@ async function handleLoginSubmit(e) {
       return;
     }
 
-    // success
     handleFormSubmit({ target: form });
     localStorage.setItem("currentUser", user.email);
     showAlert("success", "Signed in — redirecting...");

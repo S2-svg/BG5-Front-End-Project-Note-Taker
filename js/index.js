@@ -449,7 +449,6 @@ function deleteEvent(id) {
   saveAndRefresh();
 }
 
-// 6. Productivity Functions
 function updateProductivityText() {
   const total = tasks.length;
   const done = tasks.filter((t) => t.done).length;
@@ -462,7 +461,6 @@ function updateProductivityText() {
   else if (total === 0) textElement.innerText = "No tasks for today.";
   else textElement.innerText = `You have ${pending} tasks waiting.`;
 
-  // Update Progress Bar
   const percentage = total === 0 ? 0 : (done / total) * 100;
   progressBar.style.width = `${percentage}%`;
 }
@@ -477,7 +475,6 @@ function updateQuickStats() {
   document.getElementById("starredNotesStat").innerText = starredNotes;
 }
 
-// 7. Modal Functions
 function openNoteModal(noteId = null) {
   editingNoteId = noteId;
   const modal = document.getElementById("noteModal");
@@ -568,7 +565,6 @@ function saveSettings() {
   closeSettingsModal();
 }
 
-// 8. Note Save Function
 function saveNote() {
   const titleInput = document.getElementById("noteTitle");
   const contentInput = document.getElementById("noteContent");
@@ -584,7 +580,6 @@ function saveNote() {
   }
 
   if (editingNoteId) {
-    // Update existing note
     const noteIndex = notes.findIndex((n) => n.id === editingNoteId);
     if (noteIndex !== -1) {
       notes[noteIndex] = {
@@ -596,7 +591,6 @@ function saveNote() {
       };
     }
   } else {
-    // Create new note
     notes.push({
       id: Date.now(),
       title,
@@ -614,7 +608,6 @@ function saveNote() {
   closeModal();
 }
 
-// 9. Quick Actions
 function quickAdd(type) {
   if (type === "note") {
     openNoteModal();
@@ -623,7 +616,6 @@ function quickAdd(type) {
   }
 }
 
-// 10. Data Management
 function exportData() {
   const data = {
     notes,
@@ -684,24 +676,20 @@ function importData() {
 
 function logout() {
   if (confirm("Are you sure you want to logout?")) {
-    // Clear sensitive data and session keys
     localStorage.removeItem("notetaker-user");
     localStorage.removeItem("notetaker-theme");
     localStorage.removeItem("currentUser");
     localStorage.removeItem("offlineMode");
 
-    // Clear UI state if present
     const userNameEl = document.getElementById("userName");
     if (userNameEl) userNameEl.innerText = "Welcome back, Guest 👋";
 
-    // Inform and redirect to sign-in (safe next)
     alert("Logged out successfully. Redirecting to Sign In...");
     const next = "index.html";
     location.href = `signin.html?next=${encodeURIComponent(next)}`;
   }
 }
 
-// 11. Utility Functions
 function filterNotes() {
   const val = document.getElementById("searchInput").value;
   renderNotes(val);
@@ -725,7 +713,6 @@ function setupAutoSave() {
   const interval =
     parseInt(localStorage.getItem("notetaker-autosave") || "30") * 1000;
   if (interval >= 5000) {
-    // Minimum 5 seconds
     autoSaveTimer = setInterval(() => {
       saveAndRefresh();
       console.log("Auto-saved at", new Date().toLocaleTimeString());
@@ -746,9 +733,7 @@ function refreshIcons() {
   lucide.createIcons();
 }
 
-// 12. Initialize App
 window.addEventListener("DOMContentLoaded", () => {
-  // Load saved data
   const savedColor = localStorage.getItem("notetaker-theme");
   const savedUser = localStorage.getItem("notetaker-user");
   const savedDefaultView =
@@ -760,7 +745,6 @@ window.addEventListener("DOMContentLoaded", () => {
       "userName"
     ).innerText = `Welcome back, ${savedUser} 👋`;
 
-  // Initialize
   updateClock();
   setInterval(updateClock, 1000);
   setupAutoSave();
@@ -768,7 +752,6 @@ window.addEventListener("DOMContentLoaded", () => {
   saveAndRefresh();
   refreshIcons();
 
-  // Back to top functionality
   const backToTop = document.getElementById("backToTop");
 
   window.addEventListener("scroll", function () {
@@ -787,7 +770,6 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Close modals on ESC key
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeModal();
@@ -795,12 +777,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Initial animation
   document.querySelectorAll(".nav-section").forEach((section, index) => {
     section.style.animationDelay = `${index * 0.1}s`;
   });
 
-  // Make functions globally available
   window.setView = setView;
   window.changeBg = changeBg;
   window.openNoteModal = openNoteModal;

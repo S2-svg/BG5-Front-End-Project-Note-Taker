@@ -1120,7 +1120,6 @@ body {
   transform: none;
 }
 
-/* checked box look for non-accent supporting browsers */
 .form-check-input:checked {
   .export-settings .form-check-input {
     width: 18px;
@@ -1159,7 +1158,6 @@ body {
   line-height: 18px;
 }
 
-/* Sticky footer so action is always visible */
 .export-footer {
   position: sticky;
   bottom: 0;
@@ -1411,7 +1409,6 @@ body.dark-theme .export-footer .btn-primary {
       justify-content: space-between;
     }
 
-    /* Reduce offset on small screens so button doesn't overlap too much */
     @media (max-width: 520px) {
       .export-footer .btn-primary {
         transform: translateY(-8px);
@@ -1476,5 +1473,3 @@ body.dark-theme .export-footer .btn-primary {
   width: 150px;
   margin-left: 0.5rem;
 }
-
-

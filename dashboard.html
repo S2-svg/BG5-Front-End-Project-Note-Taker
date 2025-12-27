@@ -15,42 +15,34 @@
       rel="stylesheet"
     />
 
-    <!-- Font Awesome -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
-    <!-- SweetAlert2 -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css"
     />
 
-    <!-- Quill Editor -->
     <link
       href="https://cdn.quilljs.com/1.3.7/quill.snow.css"
       rel="stylesheet"
     />
 
-    <!-- Animate.css -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
     />
 
-    <!-- Export Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/docx@7.8.1/build/index.js"></script>
 
-    <!-- Custom CSS (legacy) -->
     <link rel="stylesheet" href="/css/dashboard.css" />
   </head>
   <body>
-    <!-- Main App (Hidden Initially) -->
     <div class="app-container" id="appContainer" style="display: none">
-      <!-- Sidebar -->
       <div class="sidebar" id="sidebar">
         <div class="toggle-sidebar" id="toggleSidebar">
           <i class="fas fa-chevron-left"></i>
@@ -152,7 +144,6 @@
         </div>
       </div>
 
-      <!-- Main Content -->
       <div class="main-content">
         <div class="top-bar">
           <div class="search-container">
@@ -205,11 +196,8 @@
           </div>
         </div>
 
-        <div class="notes-grid" id="notesGrid">
-          <!-- Notes will be added here -->
-        </div>
+        <div class="notes-grid" id="notesGrid"></div>
 
-        <!-- To-Do Panel -->
         <div class="task-panel" id="taskPanel" style="display: none">
           <div class="task-panel-header">
             <h2>To-Do Lists</h2>
@@ -266,15 +254,14 @@
             </div>
           </div>
 
-          <div class="todo-list-container" id="todoListContainer">
-            <!-- To-Do lists will be added here -->
-          </div>
+          <div class="todo-list-container" id="todoListContainer"></div>
         </div>
 
-        <!-- Trash Container -->
-        <div class="trash-container" id="trashContainer" style="display: none">
-          <!-- Trash content will be added here -->
-        </div>
+        <div
+          class="trash-container"
+          id="trashContainer"
+          style="display: none"
+        ></div>
 
         <div class="empty-state" id="emptyState" style="display: none">
           <div class="empty-icon">
@@ -290,7 +277,6 @@
         </div>
       </div>
 
-      <!-- Editor Modal -->
       <div class="editor-modal" id="editorModal">
         <div class="editor-container">
           <div class="editor-header">
@@ -363,7 +349,6 @@
         </div>
       </div>
 
-      <!-- To-Do Editor Modal -->
       <div class="editor-modal" id="todoEditorModal">
         <div class="editor-container">
           <div class="editor-header">
@@ -396,9 +381,7 @@
 
               <div class="form-group">
                 <label>Tasks</label>
-                <div class="todo-list-editor" id="todoListEditor">
-                  <!-- Tasks will be added here dynamically -->
-                </div>
+                <div class="todo-list-editor" id="todoListEditor"></div>
                 <button
                   type="button"
                   class="btn btn-outline-secondary btn-sm mt-2"
@@ -566,7 +549,6 @@
       </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
