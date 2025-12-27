@@ -271,7 +271,9 @@ async function initializeApp() {
     if (storedEmail) {
       try {
         const users = JSON.parse(localStorage.getItem("users") || "[]");
-        const found = users.find((u) => u.email && u.email.toLowerCase() === storedEmail.toLowerCase());
+        const found = users.find(
+          (u) => u.email && u.email.toLowerCase() === storedEmail.toLowerCase()
+        );
         if (found) {
           currentUser = {
             uid: found.id || found.email,
@@ -293,7 +295,10 @@ async function initializeApp() {
     // If there are users registered and we don't have an active session, force sign-in
     const usersList = JSON.parse(localStorage.getItem("users") || "[]");
     if (!currentUser && usersList.length > 0 && !offlineFlag) {
-      const nextFromUrl = new URLSearchParams(location.search).get("next") || location.pathname.split("/").pop() || "index.html";
+      const nextFromUrl =
+        new URLSearchParams(location.search).get("next") ||
+        location.pathname.split("/").pop() ||
+        "index.html";
       location.href = `signin.html?next=${encodeURIComponent(nextFromUrl)}`;
       return;
     }
@@ -531,14 +536,12 @@ function updateThemeButton() {
 }
 
 function updateUserInfo() {
-  if (currentUser && userName && userEmail && userAvatar) {
+  if (currentUser && userName && userAvatar) {
     if (currentUser.uid === "offline-user") {
       userName.textContent = "Guest User";
-      userEmail.textContent = "Using Local Storage";
       userAvatar.innerHTML = '<i class="fas fa-laptop"></i>';
     } else {
       userName.textContent = currentUser.displayName || "User";
-      userEmail.textContent = currentUser.email || "";
       userAvatar.textContent = currentUser.displayName
         ? currentUser.displayName.charAt(0).toUpperCase()
         : "U";

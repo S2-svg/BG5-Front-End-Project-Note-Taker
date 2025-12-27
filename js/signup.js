@@ -117,6 +117,13 @@ function setupInputAnimations() {
 }
 function setupSocialButtons() {
   const socialButtons = document.querySelectorAll(".btn-social");
+  // Hide social buttons if Firebase Auth isn't available
+  if (!window.firebase || !firebase.auth) {
+    const socialSection = document.querySelector(".social-login");
+    if (socialSection) socialSection.style.display = "none";
+    return;
+  }
+
   socialButtons.forEach((button) => {
     button.addEventListener("mouseenter", function () {
       this.style.boxShadow = "0 5px 15px rgba(0,0,0,0.1)";
@@ -170,12 +177,18 @@ async function signInWithProvider(providerName) {
   }
 
   let provider;
-  if (providerName === "google") {
-    provider = new firebase.auth.GoogleAuthProvider();
-  } else if (providerName === "github") {
-    provider = new firebase.auth.GithubAuthProvider();
-  } else {
-    showAlert("error", "Unknown social provider: " + providerName);
+  try {
+    if (providerName === "google") {
+      provider = new firebase.auth.GoogleAuthProvider();
+    } else if (providerName === "github") {
+      provider = new firebase.auth.GithubAuthProvider();
+    } else {
+      showAlert("error", "Unknown social provider: " + providerName);
+      return;
+    }
+  } catch (err) {
+    console.error("Provider creation failed:", err);
+    showAlert("error", "Social login is not available: provider initialization failed.");
     return;
   }
 
@@ -213,11 +226,32 @@ async function signInWithProvider(providerName) {
     localStorage.setItem("currentUser", existing.email);
     showAlert("success", `Signed in with ${providerName} — redirecting...`);
     const nextFromUrl =
-      new URLSearchParams(location.search).get("next") || "index.html";
+      sanitizeNextUrl(new URLSearchParams(location.search).get("next") || "index.html");
     setTimeout(() => (location.href = nextFromUrl), 900);
   } catch (err) {
     console.error("Social sign-in failed:", err);
-    showAlert("error", "Social sign-in failed: " + (err.message || err));
+    const code = err && err.code ? err.code : null;
+    const codePart = code ? ` (${code})` : "";
+
+    // If the popup is blocked or not supported, fallback to redirect flow
+    if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment" || code === "auth/popup-closed-by-user") {
+      try {
+        showAlert("info", "Popup blocked or not supported — attempting redirect sign-in...");
+        await firebase.auth().signInWithRedirect(provider);
+        return;
+      } catch (redirErr) {
+        console.error("Redirect sign-in failed:", redirErr);
+        showAlert("error", "Redirect sign-in failed: " + (redirErr.message || redirErr) + (redirErr.code ? ` (${redirErr.code})` : ""));
+        return;
+      }
+    }
+
+    if (code === "auth/unauthorized-domain") {
+      showAlert("error", "Sign-in blocked: unauthorized domain. Add this domain to Firebase Console > Authentication > Authorized domains.");
+      return;
+    }
+
+    showAlert("error", "Social sign-in failed: " + (err.message || err) + codePart);
   }
 }
 function isValidEmail(email) {
@@ -247,6 +281,8 @@ function initializePage() {
   console.log("Initializing auth page...");
   setupInputAnimations();
   if (document.querySelector(".btn-social")) {
+    // Check Firebase availability and provide diagnostics to the user
+    checkFirebaseAvailability();
     setupSocialButtons();
   }
   const passwordInput = document.getElementById("password");
@@ -316,6 +352,84 @@ async function hashString(message) {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Diagnostics: verify Firebase and providers and show helpful user-facing messages
+function checkFirebaseAvailability() {
+  const socialSection = document.querySelector(".social-login");
+  const noticeEl = document.getElementById("socialNotice");
+  try {
+    // Prefer explicit global flag when available
+    if (typeof window.firebaseInitialized !== "undefined" && !window.firebaseInitialized) {
+      if (noticeEl) {
+        noticeEl.style.display = "block";
+        noticeEl.className = "alert alert-info";
+        noticeEl.textContent = "Firebase is not configured. To enable Google/GitHub sign-in, paste your Firebase config into static/JS/firebase-init.js and enable providers in Firebase Console.";
+      } else {
+        showAlert("warning", "Firebase not configured — social sign-in disabled.");
+      }
+      if (socialSection) socialSection.style.display = "none";
+      return false;
+    }
+
+    if (typeof window.firebaseAvailable !== "undefined" && !window.firebaseAvailable) {
+      if (noticeEl) {
+        noticeEl.style.display = "block";
+        noticeEl.className = "alert alert-warning";
+        noticeEl.innerHTML = "Firebase Auth is not available. Ensure you included <code>firebase-auth-compat.js</code> and enabled providers in the Firebase console.";
+      } else {
+        showAlert("warning", "Firebase Auth not available — social sign-in disabled.");
+      }
+      if (socialSection) socialSection.style.display = "none";
+      return false;
+    }
+
+    if (!window.firebase || !firebase.auth) {
+      if (noticeEl) {
+        noticeEl.style.display = "block";
+        noticeEl.className = "alert alert-warning";
+        noticeEl.innerHTML = "Firebase SDK appears missing or misloaded. Check browser console for details.";
+      } else {
+        showAlert("warning", "Firebase SDK not found — social sign-in is disabled.");
+      }
+      if (socialSection) socialSection.style.display = "none";
+      return false;
+    }
+
+    // Try creating common providers – errors usually indicate misconfiguration
+    try {
+      new firebase.auth.GoogleAuthProvider();
+      new firebase.auth.GithubAuthProvider();
+    } catch (err) {
+      console.warn("Provider instantiation failed:", err);
+      if (noticeEl) {
+        noticeEl.style.display = "block";
+        noticeEl.className = "alert alert-warning";
+        noticeEl.innerHTML = "Social providers cannot be initialized. Check your Firebase project settings and make sure the providers (Google, GitHub) are enabled.";
+      } else {
+        showAlert("warning", "Social providers are not available. Check Firebase config/provider setup.");
+      }
+      if (socialSection) socialSection.style.display = "none";
+      return false;
+    }
+
+    // If everything looks fine, hide any previous notice
+    if (noticeEl) {
+      noticeEl.style.display = "none";
+    }
+
+    // Everything looks OK
+    return true;
+  } catch (err) {
+    console.error("Firebase availability check error:", err);
+    if (noticeEl) {
+      noticeEl.style.display = "block";
+      noticeEl.className = "alert alert-warning";
+      noticeEl.textContent = "Social sign-in disabled due to an unexpected error (see console).";
+    }
+    if (socialSection) socialSection.style.display = "none";
+    return false;
+  }
+}
+
 async function handleRegisterSubmit(e) {
   const form = document.getElementById("registerForm");
   if (!form) return;
@@ -371,21 +485,27 @@ async function handleRegisterSubmit(e) {
     };
     users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
-    // Do NOT automatically sign the user in. Require explicit sign-in.
+    // Automatically sign the user in after registration
+    try {
+      localStorage.setItem("currentUser", newUser.email);
+      localStorage.setItem("offlineMode", "false");
+    } catch (err) {
+      console.warn("Could not persist session after registration:", err);
+    }
 
     setTimeout(() => {
-      showAlert("success", "Account created successfully. Please sign in to continue.");
+      showAlert("success", "Account created and signed in — redirecting...");
       // clear form and reset meter
       form.reset();
       const meter = document.getElementById("strengthMeter");
       const text = document.getElementById("strengthText");
       if (meter) meter.style.width = "0%";
       if (text) text.textContent = "Password strength:";
-      // redirect to sign-in page, pass along `next` and a created flag
+      // redirect to next (sanitized) or index
       let nextFromUrl = new URLSearchParams(location.search).get("next") || "index.html";
       nextFromUrl = sanitizeNextUrl(nextFromUrl);
       setTimeout(() => {
-        location.href = `signin.html?next=${encodeURIComponent(nextFromUrl)}&created=1`;
+        location.href = nextFromUrl;
       }, 900);
     }, 700);
   } catch (err) {

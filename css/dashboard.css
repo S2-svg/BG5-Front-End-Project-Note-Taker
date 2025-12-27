@@ -154,29 +154,61 @@ body {
   font-weight: 600;
 }
 /* button color styles */
-#themeToggleBtn{
+#themeToggleBtn {
   color: var(--success);
 }
 
-#exportBtn{
+#exportBtn {
   color: var(--success);
 }
 
-#createTodoBtn{
+#createTodoBtn {
   background: var(--success);
 }
 
-#createFirstNoteBtn{
+#createFirstNoteBtn {
   background: var(--success);
 }
 
-#closeTodoBtn{
+#closeTodoBtn:hover {
   background: var(--success);
 }
-#saveTodoBtn{
+#saveTodoBtn {
+  background: var(--success);
+}
+#saveNoteBtn {
+  background: var(--success);
+}
+#startExportBtn {
+  background: var(--success);
+}
+#cancelTodoBtn {
+  border: var(--success);
+  color: white;
+  background: var(--danger);
+}
+#newNoteBtn {
+  background: var(--success);
+}
+#cancelNoteBtn {
+  border: var(--success);
+  color: white;
+  background: var(--danger);
+}
+
+#cancelExportBtn {
+  border: var(--success);
+  color: white;
+  background: var(--danger);
+  padding-left: 2rem;
+}
+#backToNotesBtn {
   background: var(--success);
 }
 
+#createFirstTodoBtn {
+  background: var(--success);
+}
 
 .category-item,
 .tag-item {
@@ -271,7 +303,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--secondary-gradient);
+  background: var(--success);
   display: flex;
   align-items: center;
   justify-content: center;
