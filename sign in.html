@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Note Taker x Maranatha</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/sign in.css">
+
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="brand-section">
+            <div class="logo-area">
+                <i class="fas fa-feather-pointed fa-3x"></i>
+                <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Note Taker</h1>
+            </div>
+            <div style="color: white; font-size: 0.85rem; opacity: 0.6;">
+                <p>Designed for creators, thinkers, and explorers.</p>
+                <p>© <span id="year"></span> Maranatha Workspace</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <canvas id="bg-canvas"></canvas>
+            <div class="form-container">
+                <h2 id="form-title">Login</h2>
+                <p class="subtitle" id="form-subtitle">Welcome back! Please enter your details.</p>
+                <div id="msgBox"></div>
+                <form id="loginForm">
+                    <div class="form-group register-only">
+                        <label>Full Name</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="fullname" placeholder="John Doe">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" placeholder="name@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" placeholder="••••••••" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password', 'toggleIcon')">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group register-only">
+                        <label>Confirm Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-shield-halved"></i>
+                            <input type="password" id="confirmPassword" placeholder="••••••••">
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', 'toggleIconConfirm')">
+                                <i class="fas fa-eye" id="toggleIconConfirm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="loginBtn">Sign In</button>
+                    
+                    <div class="social-title">Or continue with</div>
+                    <div class="social-buttons">
+                        <div class="btn-social" onclick="socialLogin('Google')"><i class="fab fa-google"></i></div>
+                        <div class="btn-social" onclick="socialLogin('GitHub')"><i class="fab fa-github"></i></div>
+                    </div>
+                    
+                    <div class="links">
+                        <p id="switch-text">New here? <a onclick="toggleAuthMode()">Create account</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="/js/sign in.js"></script>
+</body>
+</html>
