@@ -918,5 +918,220 @@ function deleteNoteContent(type) {
     }
 }
 
+// --- REMINDER SYSTEM ---
 
+function requestNotificationPermission() {
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+    }
+}
 
+function setNoteReminder(type) {
+    const time = prompt("Enter reminder time (HH:MM) in 24h format (e.g., 14:30):");
+    if (!time) return;
+
+    const [hours, minutes] = time.split(':');
+    const now = new Date();
+    const reminderDate = new Date();
+    reminderDate.setHours(hours, minutes, 0);
+
+    // If time already passed today, set for tomorrow
+    if (reminderDate <= now) reminderDate.setDate(now.getDate() + 1);
+
+    const timeout = reminderDate.getTime() - now.getTime();
+
+    alert(`Reminder set for ${type} notes at ${time}`);
+
+    setTimeout(() => {
+        if (Notification.permission === 'granted') {
+            new Notification(`Team Space: ${type} Reminder`, {
+                body: `Time to check your ${type} notes!`,
+                icon: 'https://cdn-icons-png.flaticon.com/512/3119/3119338.png'
+            });
+        } else {
+            alert(`REMINDER: Check your ${type} notes!`);
+        }
+    }, timeout);
+}
+// --- EXPORT SYSTEM ---
+
+function exportNote(type, format) {
+    const content = notes[type] || document.getElementById('noteEditor').innerHTML;
+    const plainText = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
+
+    if (format === 'txt') {
+        const blob = new Blob([plainText], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${type}_Notes.txt`;
+        link.click();
+    }
+    else if (format === 'pdf') {
+        // Creates a temporary window to print just the note content
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head><title>${type} Notes Export</title></head>
+                <body style="font-family: sans-serif; padding: 40px;">
+                    <h1 style="color: #0ea5e9;">${type} Notes</h1>
+                    <hr>
+                    <div style="line-height: 1.6;">${content}</div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+}
+// Add this inside your openNote(type) function, where you set innerHTML for noteType
+function openNote(type, date = null) {
+    currentNoteType = type;
+    requestNotificationPermission(); // Ask for permission when opening
+
+    document.getElementById('noteType').innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+            <span>${type} Notes</span>
+            <div style="display:flex; gap:10px;">
+                <i class="fas fa-bell" onclick="setNoteReminder('${type}')" title="Set Reminder" style="cursor:pointer; color:#f59e0b"></i>
+                <i class="fas fa-file-alt" onclick="exportNote('${type}', 'txt')" title="Export as Text" style="cursor:pointer; color:#64748b"></i>
+                <i class="fas fa-file-pdf" onclick="exportNote('${type}', 'pdf')" title="Export as PDF" style="cursor:pointer; color:#f43f5e"></i>
+                <i class="fas fa-thumbtack" id="pinBtn" onclick="togglePin('${type}')" style="cursor:pointer; color: ${pinnedNotes.includes(type) ? 'var(--accent-blue)' : '#cbd5e1'}"></i>
+            </div>
+        </div>
+    `;
+
+    const noteContent = date ? getDateNote(type, date) : (notes[type] || "");
+    document.getElementById('noteEditor').innerHTML = noteContent || `Start typing...`;
+    document.getElementById('noteModal').style.display = 'flex';
+}
+// --- UPDATED REMINDER WITH SOUND ---
+
+// --- UPDATED REMINDER WITH SOUND ---
+function setNoteReminder(type) {
+    const time = prompt("Enter reminder time (HH:MM) 24h format:");
+    if (!time) return;
+
+    const [hours, minutes] = time.split(':');
+    const now = new Date();
+    const reminderDate = new Date();
+    reminderDate.setHours(hours, minutes, 0);
+
+    if (reminderDate <= now) reminderDate.setDate(now.getDate() + 1);
+    const timeout = reminderDate.getTime() - now.getTime();
+
+    alert(`⏰ Reminder set with sound for ${time}`);
+
+    setTimeout(() => {
+        // Play a cute "Ding" sound
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play();
+
+        if (Notification.permission === 'granted') {
+            new Notification(`Team Space: ${type} Reminder`, {
+                body: "Time to check your notes! 🎀",
+                icon: 'https://cdn-icons-png.flaticon.com/512/3119/3119338.png'
+            });
+        }
+    }, timeout);
+}
+// --- CUTE STICKER PICKER ---
+function insertSticker(emoji) {
+    document.execCommand('insertText', false, emoji);
+    document.getElementById('stickerMenu').style.display = 'none';
+}
+
+function toggleStickerMenu() {
+    const menu = document.getElementById('stickerMenu');
+    menu.style.display = menu.style.display === 'grid' ? 'none' : 'grid';
+}
+
+function exportNote(type, format) {
+    const content = notes[type] || document.getElementById('noteEditor').innerHTML;
+
+    if (format === 'pdf') {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <style>
+                        body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
+                        .pdf-header { border-bottom: 2px solid #0ea5e9; padding-bottom: 10px; margin-bottom: 20px; }
+                        .pdf-title { color: #0ea5e9; margin: 0; font-size: 28px; }
+                        .pdf-date { color: #64748b; font-size: 14px; }
+                        .pdf-body { line-height: 1.6; font-size: 16px; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="pdf-header">
+                        <h1 class="pdf-title">${type} Notes</h1>
+                        <p class="pdf-date">Exported on: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    <div class="pdf-body">${content}</div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        // Give time for images/stickers to load before printing
+        setTimeout(() => { printWindow.print(); }, 500);
+    } else {
+        // Existing TXT logic
+        const plainText = content.replace(/<[^>]*>/g, '');
+        const blob = new Blob([plainText], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${type}_Notes.txt`;
+        link.click();
+    }
+}
+function openNote(type, date = null) {
+    currentNoteType = type;
+    requestNotificationPermission();
+
+    document.getElementById('noteType').innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; position:relative;">
+            <span>${type} Notes</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <i class="fas fa-smile" onclick="toggleStickerMenu()" title="Add Sticker" style="cursor:pointer; color:#ff69b4"></i>
+                
+                <i class="fas fa-bell" onclick="setNoteReminder('${type}')" title="Set Reminder" style="cursor:pointer; color:#f59e0b"></i>
+                
+                <i class="fas fa-file-pdf" onclick="exportNote('${type}', 'pdf')" title="Export PDF" style="cursor:pointer; color:#f43f5e; font-size:1.2rem;"></i>
+                <i class="fas fa-file-alt" onclick="exportNote('${type}', 'txt')" title="Export Text" style="cursor:pointer; color:#64748b"></i>
+                
+                <i class="fas fa-thumbtack" id="pinBtn" onclick="togglePin('${type}')" style="cursor:pointer; color: ${pinnedNotes.includes(type) ? 'var(--accent-blue)' : '#cbd5e1'}"></i>
+            </div>
+       
+<div id="stickerMenu" style="display:none; position:absolute; top:40px; right:0; background:white; border:1px solid #eee; padding:12px; grid-template-columns:repeat(5, 1fr); gap:10px; border-radius:12px; z-index:1000; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:240px; max-height:300px; overflow-y:auto;">
+    <span onclick="insertSticker('📚')" title="Books" style="cursor:pointer; font-size:1.4rem;">📚</span>
+    <span onclick="insertSticker('📝')" title="Note" style="cursor:pointer; font-size:1.4rem;">📝</span>
+    <span onclick="insertSticker('🎓')" title="Graduation" style="cursor:pointer; font-size:1.4rem;">🎓</span>
+    <span onclick="insertSticker('🧪')" title="Science" style="cursor:pointer; font-size:1.4rem;">🧪</span>
+    <span onclick="insertSticker('🎨')" title="Art" style="cursor:pointer; font-size:1.4rem;">🎨</span>
+    <span onclick="insertSticker('📐')" title="Math" style="cursor:pointer; font-size:1.4rem;">📐</span>
+    <span onclick="insertSticker('🖋️')" title="Pen" style="cursor:pointer; font-size:1.4rem;">🖋️</span>
+    <span onclick="insertSticker('🧠')" title="Brain" style="cursor:pointer; font-size:1.4rem;">🧠</span>
+    <span onclick="insertSticker('📅')" title="Schedule" style="cursor:pointer; font-size:1.4rem;">📅</span>
+    <span onclick="insertSticker('💯')" title="Score" style="cursor:pointer; font-size:1.4rem;">💯</span>
+    
+    <span onclick="insertSticker('✨')" style="cursor:pointer; font-size:1.4rem;">✨</span>
+    <span onclick="insertSticker('🎀')" style="cursor:pointer; font-size:1.4rem;">🎀</span>
+    <span onclick="insertSticker('🧸')" style="cursor:pointer; font-size:1.4rem;">🧸</span>
+    <span onclick="insertSticker('💡')" style="cursor:pointer; font-size:1.4rem;">💡</span>
+    <span onclick="insertSticker('✅')" style="cursor:pointer; font-size:1.4rem;">✅</span>
+</div>        
+        </div>
+    `;
+    const noteContent = date ? getDateNote(type, date) : (notes[type] || "");
+    document.getElementById('noteEditor').innerHTML = noteContent || `Start typing...`;
+    document.getElementById('noteModal').style.display = 'flex';
+}
+function insertSticker(emoji) {
+    const editor = document.getElementById('noteEditor');
+    // 1. Force focus back to the editor
+    editor.focus();
+    // 2. Insert the emoji at the cursor position
+    // 'insertHTML' is better than 'insertText' if you want them to scale well
+    document.execCommand('insertHTML', false, `<span style="font-size: 1.5rem; vertical-align: middle;">${emoji}</span>`);
+    // 3. Hide the menu
+    document.getElementById('stickerMenu').style.display = 'none';
+}
