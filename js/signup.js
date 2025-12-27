@@ -133,6 +133,36 @@ function setupSocialButtons() {
   });
 }
 
+function setupLoginFormValidation() {
+  const form = document.getElementById("loginForm");
+  if (!form) return;
+  const email = form.querySelector("#email");
+  const password = form.querySelector("#password");
+  const submit = form.querySelector("button[type=\"submit\"]");
+  if (!submit) return;
+
+  function updateState() {
+    const hasEmail = email && email.value && isValidEmail(email.value.trim());
+    const hasPassword = password && password.value && password.value.length >= 6;
+    submit.disabled = !(hasEmail && hasPassword);
+  }
+
+  // Initialize state and attach listeners
+  updateState();
+  email && email.addEventListener("input", updateState);
+  password && password.addEventListener("input", updateState);
+
+  // Prevent accidental submit when the button is disabled
+  form.addEventListener("submit", function (e) {
+    if (submit.disabled) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      showAlert("error", "Please enter a valid email and password (minimum 6 characters).");
+      return false;
+    }
+  });
+}
+
 async function signInWithProvider(providerName) {
   if (!window.firebase || !firebase.auth) {
     showAlert("error", "Social login is not available on this page.");
@@ -194,6 +224,22 @@ function isValidEmail(email) {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailPattern.test(email);
 }
+
+function sanitizeNextUrl(next) {
+  // Avoid redirecting back to auth pages like signup/signin to prevent loops
+  if (!next) return "index.html";
+  try {
+    const lower = String(next).toLowerCase();
+    if (lower.includes("signup") || lower.includes("singup") || lower.includes("signin")) {
+      return "index.html";
+    }
+    // Basic security: disallow javascript: and data: URIs
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "index.html";
+    return next;
+  } catch (err) {
+    return "index.html";
+  }
+}
 function isValidPassword(password) {
   return password.length >= 6;
 }
@@ -230,6 +276,8 @@ function initializePage() {
       e.stopImmediatePropagation();
       handleLoginSubmit(e);
     });
+    // Enable live validation that controls the submit button
+    setupLoginFormValidation();
   }
   const alerts = document.querySelectorAll(".alert");
   alerts.forEach((alert) => {
@@ -241,7 +289,12 @@ function initializePage() {
   });
   console.log("Auth page initialized!");
   // If a 'next' query parameter exists, let the user know they need to sign in first
-  const nextParam = new URLSearchParams(location.search).get("next");
+  const urlParams = new URLSearchParams(location.search);
+  const nextParam = urlParams.get("next");
+  const createdParam = urlParams.get("created");
+  if (createdParam) {
+    showAlert("success", "Account created successfully. Please sign in.");
+  }
   if (nextParam) {
     showAlert("info", `Please sign in or register to continue to ${nextParam}`);
   }
@@ -318,22 +371,21 @@ async function handleRegisterSubmit(e) {
     };
     users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
-    // set session
-    localStorage.setItem("currentUser", newUser.email);
+    // Do NOT automatically sign the user in. Require explicit sign-in.
 
     setTimeout(() => {
-      showAlert("success", "Account created successfully — redirecting...");
+      showAlert("success", "Account created successfully. Please sign in to continue.");
       // clear form and reset meter
       form.reset();
       const meter = document.getElementById("strengthMeter");
       const text = document.getElementById("strengthText");
       if (meter) meter.style.width = "0%";
       if (text) text.textContent = "Password strength:";
-      // redirect to dashboard
-      const nextFromUrl =
-        new URLSearchParams(location.search).get("next") || "index.html";
+      // redirect to sign-in page, pass along `next` and a created flag
+      let nextFromUrl = new URLSearchParams(location.search).get("next") || "index.html";
+      nextFromUrl = sanitizeNextUrl(nextFromUrl);
       setTimeout(() => {
-        location.href = nextFromUrl;
+        location.href = `signin.html?next=${encodeURIComponent(nextFromUrl)}&created=1`;
       }, 900);
     }, 700);
   } catch (err) {
@@ -377,8 +429,9 @@ async function handleLoginSubmit(e) {
     handleFormSubmit({ target: form });
     localStorage.setItem("currentUser", user.email);
     showAlert("success", "Signed in — redirecting...");
-    const nextFromUrl =
+    let nextFromUrl =
       new URLSearchParams(location.search).get("next") || "index.html";
+    nextFromUrl = sanitizeNextUrl(nextFromUrl);
     setTimeout(() => {
       location.href = nextFromUrl;
     }, 800);

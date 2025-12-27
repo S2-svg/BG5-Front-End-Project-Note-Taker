@@ -2494,12 +2494,20 @@
 
       function logout() {
         if (confirm("Are you sure you want to logout?")) {
-          // Clear sensitive data (keep notes, tasks, events)
+          // Clear sensitive data and session keys
           localStorage.removeItem("notetaker-user");
           localStorage.removeItem("notetaker-theme");
-          document.getElementById("userName").innerText =
-            "Welcome back, Guest 👋";
-          alert("Logged out successfully!");
+          localStorage.removeItem("currentUser");
+          localStorage.removeItem("offlineMode");
+
+          // Clear UI state if present
+          const userNameEl = document.getElementById("userName");
+          if (userNameEl) userNameEl.innerText = "Welcome back, Guest 👋";
+
+          // Inform and redirect to sign-in (safe next)
+          alert("Logged out successfully. Redirecting to Sign In...");
+          const next = "index.html";
+          location.href = `signin.html?next=${encodeURIComponent(next)}`;
         }
       }
 

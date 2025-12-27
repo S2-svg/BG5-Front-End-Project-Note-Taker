@@ -1,0 +1,85 @@
+@import url('signup.css');
+
+/* Small overrides specific to the sign-in page */
+.auth-center {
+  min-height: calc(100vh - 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* Slightly narrower container for sign in */
+.container {
+  max-width: 420px;
+  padding: 0 12px;
+}
+
+.logo i {
+  font-size: 48px;
+  color: var(--text-white);
+}
+.logo h1 {
+  color: var(--text-white);
+  font-size: 2rem;
+  margin-top: 6px;
+}
+
+/* Ensure the card has the same feel but a slightly tighter padding */
+.card {
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Make subtle focus state for inputs */
+.input-with-icon input:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+}
+
+/* Primary button should be full width on sign in (flat primary style) */
+.btn-primary {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--primary-color);
+  color: var(--text-white);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+  border: none;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.18);
+}
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(102, 126, 234, 0.10);
+}
+
+/* Social buttons look better stacked on narrow screens */
+.social-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Make sign-in form more compact on small screens */
+@media (max-width: 480px) {
+  .container {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+  .social-buttons {
+    flex-direction: column;
+  }
+  .card {
+    padding: 20px;
+  }
+}
+
+/* Small accessibility tweak: increase hit area of links */
+.links a {
+  padding: 4px 6px;
+  display: inline-block;
+}

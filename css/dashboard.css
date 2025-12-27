@@ -153,13 +153,31 @@ body {
   margin-bottom: 1rem;
   font-weight: 600;
 }
-
+/* button color styles */
 #themeToggleBtn{
   color: var(--success);
 }
+
 #exportBtn{
   color: var(--success);
 }
+
+#createTodoBtn{
+  background: var(--success);
+}
+
+#createFirstNoteBtn{
+  background: var(--success);
+}
+
+#closeTodoBtn{
+  background: var(--success);
+}
+#saveTodoBtn{
+  background: var(--success);
+}
+
+
 .category-item,
 .tag-item {
   display: flex;

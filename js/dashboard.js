@@ -265,9 +265,40 @@ async function initializeApp() {
     todoManager.load();
     setupEventListeners();
 
-    // If auth modal exists, show it first; otherwise default to offline user and show the app
+    // Restore session if available (from signup/signin pages) and decide which view to show
     const offlineFlag = localStorage.getItem("offlineMode") === "true";
-    if (authModal && !offlineFlag) {
+    const storedEmail = localStorage.getItem("currentUser");
+    if (storedEmail) {
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        const found = users.find((u) => u.email && u.email.toLowerCase() === storedEmail.toLowerCase());
+        if (found) {
+          currentUser = {
+            uid: found.id || found.email,
+            displayName: found.name || found.email.split("@")[0],
+            email: found.email,
+          };
+        } else {
+          currentUser = {
+            uid: storedEmail,
+            displayName: storedEmail.split("@")[0],
+            email: storedEmail,
+          };
+        }
+      } catch (err) {
+        console.warn("Failed to restore user from localStorage:", err);
+      }
+    }
+
+    // If there are users registered and we don't have an active session, force sign-in
+    const usersList = JSON.parse(localStorage.getItem("users") || "[]");
+    if (!currentUser && usersList.length > 0 && !offlineFlag) {
+      const nextFromUrl = new URLSearchParams(location.search).get("next") || location.pathname.split("/").pop() || "index.html";
+      location.href = `signin.html?next=${encodeURIComponent(nextFromUrl)}`;
+      return;
+    }
+
+    if (!currentUser && authModal && !offlineFlag) {
       authModal.style.display = "flex";
       if (appContainer) appContainer.style.display = "none";
     } else {
@@ -440,14 +471,21 @@ function handleOfflineMode() {
 }
 
 function handleLogout() {
+  // Clear session and stored flags
   localStorage.removeItem("offlineMode");
-  if (authModal) authModal.style.display = "flex";
-  if (appContainer) appContainer.style.display = "none";
+  localStorage.removeItem("currentUser");
+
+  // Clear app state
   notes = [];
   trashNotes = [];
   todoManager.todos = [];
   todoManager.tasks = [];
   todoManager.save();
+
+  // Redirect the user to the sign-in page (do not show sign-up)
+  // Pass a safe `next` so they return to the home after signing in if desired
+  const next = "index.html";
+  location.href = `signin.html?next=${encodeURIComponent(next)}`;
 }
 
 function showApp() {
