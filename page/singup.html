@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign In | Note Taker</title>
+    <title>Register | Note Taker</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
@@ -13,8 +13,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-
-    <link rel="stylesheet" href="css/signin.css" />
+    <link rel="stylesheet" href="../css/signup.css" />
   </head>
   <body>
     <main class="container">
@@ -23,21 +22,36 @@
         <h1>Note Taker</h1>
       </div>
 
-      <section class="card" aria-labelledby="loginHeading">
+      <section class="card" aria-labelledby="registerHeading">
         <div class="card-header">
-          <h2 id="loginHeading">Welcome back</h2>
-          <p>Sign in to continue to your notes.</p>
+          <h2 id="registerHeading">Create your account</h2>
+          <p>
+            Join Note Taker to capture ideas, tasks, and everything in between.
+          </p>
         </div>
 
         <div id="alertContainer" aria-live="polite"></div>
-
         <div
           id="socialNotice"
           aria-live="polite"
           style="display: none; margin-bottom: 12px"
         ></div>
 
-        <form id="loginForm" novalidate>
+        <form id="registerForm" novalidate>
+          <div class="form-group">
+            <label for="fullName">Full name</label>
+            <div class="input-with-icon">
+              <i class="fas fa-user"></i>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder="Jane Doe"
+                required
+              />
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="email">Email</label>
             <div class="input-with-icon">
@@ -60,7 +74,7 @@
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Your password"
+                placeholder="At least 6 characters"
                 required
               />
               <button
@@ -72,21 +86,48 @@
                 <i class="fas fa-eye"></i>
               </button>
             </div>
+            <div class="password-strength">
+              <div id="strengthMeter" class="strength-meter"></div>
+            </div>
+            <div id="strengthText" class="strength-text">
+              Password strength:
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock"></i>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Repeat password"
+                required
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                aria-label="Toggle repeat password visibility"
+                onclick="window.passwordUtils.togglePassword('confirmPassword')"
+              >
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
           </div>
 
           <div class="form-group remember-forgot">
             <label class="remember">
-              <input type="checkbox" id="remember" /> Remember me
+              <input type="checkbox" id="terms" />
+              I agree to the <a href="#">Terms</a> and
+              <a href="#">Privacy Policy</a>
             </label>
-            <a href="#">Forgot password?</a>
           </div>
 
-          <button type="submit" class="btn btn-primary" disabled>
-            Sign in
-          </button>
+          <button type="submit" class="btn btn-primary">Create account</button>
 
           <div class="social-login">
-            <div class="social-title">Or sign in with</div>
+            <div class="social-title">Or sign up with</div>
             <div class="social-buttons">
               <button
                 type="button"
@@ -106,7 +147,7 @@
           </div>
 
           <div class="links">
-            <p>Don't have an account? <a href="singup.html">Create one</a></p>
+            <p>Already have an account? <a href="signin.html">Sign in</a></p>
           </div>
         </form>
       </section>
@@ -119,11 +160,9 @@
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
     </script>
-
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="static/JS/firebase-init.js"></script>
-
-    <script src="js/signup.js"></script>
+    <script src="/static/JS/firebase-init.js"></script>
+    <script src="../js/signup.js"></script>
   </body>
 </html>
