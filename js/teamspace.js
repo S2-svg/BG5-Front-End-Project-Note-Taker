@@ -5,7 +5,7 @@ let trash = JSON.parse(localStorage.getItem('teamSpaceTrash')) || [];
 let notes = JSON.parse(localStorage.getItem('teamSpaceNotes')) || {};
 let pinnedNotes = JSON.parse(localStorage.getItem('pinnedNotes')) || [];
 let members = JSON.parse(localStorage.getItem('teamSpaceMembers')) || [
-    { name: 'Pon Makara', role: 'Frontend Dev', color: '#0ea5e9', telegram: 'pon_makara', phone: '+85512345678', email: 'makara@example.com' }
+    { name: 'Pon Makara', role: 'Frontend Dev', color: '#0ea5e9', telegram: 'pon_makaraa', phone: '+85512345678', email: 'makara@example.com' }
 ];
 
 // --- MEMBER PROFILE & CONTACT LOGIC ---
@@ -859,5 +859,64 @@ document.addEventListener('DOMContentLoaded', function () {
     updateTrashCount();
     // ... rest of your existing DOMContentLoaded code
 });
+
+
+// --- NEW MEMBER ACTIONS ---
+function deleteMember(name) {
+    if (confirm(`Are you sure you want to remove ${name}?`)) {
+        members = members.filter(m => m.name !== name);
+        localStorage.setItem('teamSpaceMembers', JSON.stringify(members));
+        renderMembers();
+    }
+}
+
+function editMember(name) {
+    const m = members.find(member => member.name === name);
+    if (!m) return;
+
+    const newName = prompt("Edit Name:", m.name);
+    const newRole = prompt("Edit Role:", m.role);
+    const newTel = prompt("Edit Telegram (@):", m.telegram || "");
+
+    if (newName && newRole) {
+        m.name = newName;
+        m.role = newRole;
+        m.telegram = newTel;
+        localStorage.setItem('teamSpaceMembers', JSON.stringify(members));
+        renderMembers();
+    }
+}
+
+// Update your existing renderMembers display slightly to include these buttons
+// Note: This adds to your existing renderMembers logic via a small tweak to the innerHTML
+const originalRenderMembers = renderMembers;
+renderMembers = function () {
+    originalRenderMembers(); // Run your original code first
+
+    // Select all member items to add action buttons for Edit/Delete
+    document.querySelectorAll('.member-item').forEach((item, index) => {
+        const name = members[index].name;
+        const actionDiv = document.createElement('div');
+        actionDiv.style.cssText = "display:flex; gap:10px; margin-left:auto; padding-right:10px;";
+        actionDiv.innerHTML = `
+            <i class="fas fa-edit" onclick="event.stopPropagation(); editMember('${name}')" style="cursor:pointer; color:var(--text-muted)"></i>
+            <i class="fas fa-user-minus" onclick="event.stopPropagation(); deleteMember('${name}')" style="cursor:pointer; color:#f43f5e"></i>
+        `;
+        item.appendChild(actionDiv);
+    });
+};
+
+// --- DELETE NOTES ---
+function deleteNoteContent(type) {
+    if (confirm(`Clear all content for ${type} notes?`)) {
+        notes[type] = "";
+        localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+        alert(`${type} notes cleared.`);
+        if (currentNoteType === type) {
+            document.getElementById('noteEditor').innerHTML = "Start typing...";
+        }
+    }
+}
+
 
 
