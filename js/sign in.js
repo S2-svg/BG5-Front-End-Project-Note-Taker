@@ -74,11 +74,11 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
             if (storedPassword && storedPassword === password) {
                 showMessage("Login Successful!", "success");
                 btn.innerHTML = '<i class="fas fa-check"></i> Redirecting...';
-                setTimeout(() => window.location.href = "index.html", 1000);
+                setTimeout(() => window.location.href = "/page/index.html", 1000);
             } else {
                 showMessage("Email or Password incorrect!", "error");
                 btn.disabled = false;
-                btn.innerText = "Sign In";
+                btn.innerText = "/page/index.html";
             }
         } else {
             // REGISTER LOGIC
