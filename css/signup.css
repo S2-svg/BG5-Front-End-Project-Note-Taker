@@ -53,14 +53,15 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* New centered glass-card style for a modern minimal aesthetic */
-  .auth-center {
-    min-height: calc(100vh - 40px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-  }
+}
+
+/* Centering helper (was mistakenly nested inside the * selector) */
+.auth-center {
+  min-height: calc(100vh - 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
 }
 body {
   font-family: "Poppins", sans-serif;

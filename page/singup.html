@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Register | Note Taker</title>
 
-    <!-- Fonts & Icons -->
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
@@ -14,9 +13,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-
-    <!-- Page Styles -->
-    <link rel="stylesheet" href="css/signup.css" />
+    <link rel="stylesheet" href="../css/signup.css" />
   </head>
   <body>
     <main class="container">
@@ -33,8 +30,12 @@
           </p>
         </div>
 
-        <!-- Alert container (JS will inject messages here) -->
         <div id="alertContainer" aria-live="polite"></div>
+        <div
+          id="socialNotice"
+          aria-live="polite"
+          style="display: none; margin-bottom: 12px"
+        ></div>
 
         <form id="registerForm" novalidate>
           <div class="form-group">
@@ -159,10 +160,9 @@
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
     </script>
-    <!-- Firebase (needed for social auth) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="../static/JS/firebase-init.js"></script>
-    <script src="js/signup.js"></script>
+    <script src="/static/JS/firebase-init.js"></script>
+    <script src="../js/signup.js"></script>
   </body>
 </html>

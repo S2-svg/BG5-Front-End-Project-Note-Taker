@@ -1,0 +1,122 @@
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function initCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = Math.random() * 0.4 - 0.2;
+        this.speedY = Math.random() * 0.4 - 0.2;
+    }
+    update() {
+        this.x += this.speedX; this.y += this.speedY;
+        if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+        if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+    }
+    draw() {
+        ctx.fillStyle = '#32e026'; ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+    }
+}
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+}
+initCanvas(); 
+for (let i = 0; i < 70; i++) particles.push(new Particle());
+animate();
+// --- 2. AUTH LOGIC ---
+let isLoginMode = true;
+function toggleAuthMode() {
+    isLoginMode = !isLoginMode;
+    const registerFields = document.querySelectorAll('.register-only');
+    
+    // Toggle Visibility of Name and Confirm Password
+    registerFields.forEach(field => {
+        field.style.display = isLoginMode ? "none" : "block";
+        // Toggle required attribute
+        const input = field.querySelector('input');
+        if(input) input.required = !isLoginMode;
+    });
+    document.getElementById('form-title').innerText = isLoginMode ? "Login" : "Register";
+    document.getElementById('form-subtitle').innerText = isLoginMode ? "Welcome back! Enter your details." : "Join us to start taking better notes.";
+    document.getElementById('loginBtn').innerText = isLoginMode ? "Sign In" : "Create Account";
+    document.getElementById('switch-text').innerHTML = isLoginMode ? 'New here? <a onclick="toggleAuthMode()">Create account</a>' : 'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>';
+}
+// Updated togglePassword to handle multiple inputs
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('fa-eye-slash');
+}
+function showMessage(text, type) {
+    const msgBox = document.getElementById('msgBox');
+    msgBox.textContent = text;
+    msgBox.className = type;
+    msgBox.style.display = "block";
+    if (type === "error") setTimeout(() => { msgBox.style.display = "none"; }, 3000);
+}
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+    setTimeout(() => {
+        if (isLoginMode) {
+            // LOGIN LOGIC
+            const storedPassword = localStorage.getItem(email);
+            if (storedPassword && storedPassword === password) {
+                showMessage("Login Successful!", "success");
+                btn.innerHTML = '<i class="fas fa-check"></i> Redirecting...';
+                setTimeout(() => window.location.href = "/page/index.html", 1000);
+            } else {
+                showMessage("Email or Password incorrect!", "error");
+                btn.disabled = false;
+                btn.innerText = "/page/index.html";
+            }
+        } else {
+            // REGISTER LOGIC
+            const confirmPass = document.getElementById('confirmPassword').value.trim();
+            const fullName = document.getElementById('fullname').value.trim();
+            // Validation: Name check
+            if (!fullName) {
+                showMessage("Please enter your name.", "error");
+                resetBtn();
+                return;
+            }
+            // Validation: Password match check
+            if (password !== confirmPass) {
+                showMessage("Passwords do not match!", "error");
+                resetBtn();
+                return;
+            }
+            if (localStorage.getItem(email)) {
+                showMessage("Email already registered!", "error");
+                resetBtn();
+            } else {
+                localStorage.setItem(email, password);
+                // Optionally store name: localStorage.setItem(email + "_name", fullName);
+                showMessage("Account Created! You can now login.", "success");
+                setTimeout(() => {
+                    toggleAuthMode();
+                    resetBtn();
+                }, 1500);
+            }
+        }
+    }, 1000);
+    function resetBtn() {
+        btn.disabled = false;
+        btn.innerText = isLoginMode ? "Sign In" : "Create Account";
+    }
+});
+function socialLogin(platform) {
+    console.log("Logging in with " + platform);
+    showMessage(platform + " login is not connected yet.", "error");
+}
+document.getElementById("year").textContent = new Date().getFullYear();

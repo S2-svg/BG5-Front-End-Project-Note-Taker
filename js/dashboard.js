@@ -8,7 +8,6 @@ const firebaseConfig = {
   appId: "1:646526872882:web:abc123def456ghi789jkl0",
 };
 
-// Initialize Firebase
 try {
   firebase.initializeApp(firebaseConfig);
   console.log("Firebase initialized successfully");
@@ -16,7 +15,6 @@ try {
   console.error("Firebase initialization error:", error);
 }
 
-// Fallback: export as an HTML-based .doc file (widely supported by MS Word)
 async function exportAsDocHtml(notesToExport, fileName, includeMetadata) {
   let html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(
     fileName
@@ -70,7 +68,6 @@ function escapeHtml(str) {
 const auth = firebase.auth ? firebase.auth() : null;
 const db = firebase.firestore();
 
-// App State
 let currentUser = null;
 let notes = [];
 let trashNotes = [];
@@ -144,7 +141,6 @@ const cancelTodoBtn = document.getElementById("cancelTodoBtn");
 const closeTodoBtn = document.getElementById("closeTodoBtn");
 const addTaskBtn = document.getElementById("addTaskBtn");
 
-// TODO Manager
 const todoManager = {
   todos: [],
   tasks: [],
@@ -265,13 +261,46 @@ async function initializeApp() {
     todoManager.load();
     setupEventListeners();
 
-    // If auth modal exists, show it first; otherwise default to offline user and show the app
+    // Restore session if available (from signup/signin pages) and decide which view to show
     const offlineFlag = localStorage.getItem("offlineMode") === "true";
-    if (authModal && !offlineFlag) {
+    const storedEmail = localStorage.getItem("currentUser");
+    if (storedEmail) {
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        const found = users.find(
+          (u) => u.email && u.email.toLowerCase() === storedEmail.toLowerCase()
+        );
+        if (found) {
+          currentUser = {
+            uid: found.id || found.email,
+            displayName: found.name || found.email.split("@")[0],
+            email: found.email,
+          };
+        } else {
+          currentUser = {
+            uid: storedEmail,
+            displayName: storedEmail.split("@")[0],
+            email: storedEmail,
+          };
+        }
+      } catch (err) {
+        console.warn("Failed to restore user from localStorage:", err);
+      }
+    }
+    const usersList = JSON.parse(localStorage.getItem("users") || "[]");
+    if (!currentUser && usersList.length > 0 && !offlineFlag) {
+      const nextFromUrl =
+        new URLSearchParams(location.search).get("next") ||
+        location.pathname.split("/").pop() ||
+        "index.html";
+      location.href = `signin.html?next=${encodeURIComponent(nextFromUrl)}`;
+      return;
+    }
+
+    if (!currentUser && authModal && !offlineFlag) {
       authModal.style.display = "flex";
       if (appContainer) appContainer.style.display = "none";
     } else {
-      // ensure we have a fallback offline user so saving/loading works
       if (!currentUser) {
         currentUser = {
           uid: "offline-user",
@@ -313,20 +342,16 @@ function initQuillEditor() {
 function setupEventListeners() {
   console.log("Setting up event listeners...");
 
-  // Auth
   if (signInBtn) signInBtn.addEventListener("click", handleSignIn);
   if (offlineModeBtn)
     offlineModeBtn.addEventListener("click", handleOfflineMode);
   if (logoutBtn) logoutBtn.addEventListener("click", handleLogout);
 
-  // Sidebar
   if (toggleSidebar)
     toggleSidebar.addEventListener("click", toggleSidebarCollapse);
 
-  // Theme
   if (themeToggleBtn) themeToggleBtn.addEventListener("click", toggleTheme);
 
-  // Navigation
   document.querySelectorAll(".category-item").forEach((item) => {
     item.addEventListener("click", () => {
       const category = item.dataset.category;
@@ -369,8 +394,7 @@ function setupEventListeners() {
   if (cancelExportBtn)
     cancelExportBtn.addEventListener("click", closeExportModal);
   if (startExportBtn) startExportBtn.addEventListener("click", startExport);
-  // Use event delegation for export option clicks so dynamically moved/inserted
-  // options still work reliably.
+
   const exportOptionsContainer = document.querySelector(".export-options");
   if (exportOptionsContainer) {
     exportOptionsContainer.addEventListener("click", (e) => {
@@ -379,13 +403,13 @@ function setupEventListeners() {
       document
         .querySelectorAll(".export-option")
         .forEach((opt) => opt.classList.remove("active"));
-      // If this option is marked disabled, inform user and fallback
+
       if (option.classList.contains("disabled")) {
         console.warn("User selected disabled format:", option.dataset.format);
         showNotification(
           "Word library not loaded — attempting Word-compatible .doc export instead."
         );
-        // keep DOCX selected so startExport uses the DOCX path, which will fall back to HTML .doc
+
         option.classList.add("active");
         const sel = document.getElementById("exportFormatSelect");
         if (sel) sel.value = "docx";
@@ -394,13 +418,12 @@ function setupEventListeners() {
       }
       option.classList.add("active");
       console.log("Export option selected:", option.dataset.format);
-      // sync to select fallback if present
+
       const sel = document.getElementById("exportFormatSelect");
       if (sel) sel.value = option.dataset.format;
     });
   }
 
-  // sync select -> active card (fallback picker)
   const exportFormatSelect = document.getElementById("exportFormatSelect");
   if (exportFormatSelect) {
     exportFormatSelect.addEventListener("change", (e) => {
@@ -419,7 +442,6 @@ function setupEventListeners() {
 
 // Auth Functions
 function handleSignIn() {
-  // Simple demo sign-in
   currentUser = {
     uid: "demo-user",
     displayName: "Demo User",
@@ -441,13 +463,16 @@ function handleOfflineMode() {
 
 function handleLogout() {
   localStorage.removeItem("offlineMode");
-  if (authModal) authModal.style.display = "flex";
-  if (appContainer) appContainer.style.display = "none";
+  localStorage.removeItem("currentUser");
+
   notes = [];
   trashNotes = [];
   todoManager.todos = [];
   todoManager.tasks = [];
   todoManager.save();
+
+  const next = "index.html";
+  location.href = `signin.html?next=${encodeURIComponent(next)}`;
 }
 
 function showApp() {
@@ -493,14 +518,12 @@ function updateThemeButton() {
 }
 
 function updateUserInfo() {
-  if (currentUser && userName && userEmail && userAvatar) {
+  if (currentUser && userName && userAvatar) {
     if (currentUser.uid === "offline-user") {
       userName.textContent = "Guest User";
-      userEmail.textContent = "Using Local Storage";
       userAvatar.innerHTML = '<i class="fas fa-laptop"></i>';
     } else {
       userName.textContent = currentUser.displayName || "User";
-      userEmail.textContent = currentUser.email || "";
       userAvatar.textContent = currentUser.displayName
         ? currentUser.displayName.charAt(0).toUpperCase()
         : "U";
@@ -516,7 +539,6 @@ async function loadNotes() {
 
   try {
     if (isOnline && currentUser.uid !== "offline-user") {
-      // Load from Firebase (simplified for demo)
       console.log("Loading from Firebase...");
       notes =
         JSON.parse(localStorage.getItem(`nexusNotes_${currentUser.uid}`)) || [];
@@ -1111,7 +1133,6 @@ function saveTodo() {
     return;
   }
 
-  // Collect tasks
   const tasks = [];
   document.querySelectorAll(".todo-task-item").forEach((item) => {
     const taskTitle = item.querySelector(".task-title").value.trim();
@@ -1131,10 +1152,8 @@ function saveTodo() {
   const todoId = todoEditorModal.dataset.currentTodoId;
 
   if (todoId) {
-    // Update existing
     todoManager.updateTodo(todoId, { title, description, pinned });
 
-    // Clear old tasks and add new ones
     const oldTasks = todoManager.getTasksByTodoId(todoId);
     oldTasks.forEach((task) => {
       todoManager.tasks = todoManager.tasks.filter((t) => t.id !== task.id);
@@ -1388,13 +1407,12 @@ function goBackToNotes() {
 
 // Export Functions
 function showExportModal() {
-  // re-query and ensure there is a selected option (default to first)
   const options = document.querySelectorAll(".export-option");
   options.forEach((opt) => opt.classList.remove("active"));
   if (options.length > 0) options[0].classList.add("active");
   const date = new Date().toISOString().split("T")[0];
   exportFileNameInput.value = `nexus-notes-${date}`;
-  // Check library availability and mark disabled formats
+
   const docxLib = window.docx || window.Docx;
   const docxOption = document.querySelector(
     '.export-option[data-format="docx"]'
@@ -1511,7 +1529,6 @@ function getFilteredNotes() {
 
 // Simplified Export Functions for Demo
 async function exportAsPDF(notesToExport, fileName, includeMetadata) {
-  // Try to use jsPDF for a proper PDF file. If not available, fall back to a text-based PDF blob.
   const docText = [];
   docText.push("Notes Export\n");
   docText.push(`Exported on: ${new Date().toLocaleDateString()}\n`);
@@ -1530,7 +1547,6 @@ async function exportAsPDF(notesToExport, fileName, includeMetadata) {
     docText.push("---\n\n");
   });
 
-  // Use jsPDF if available to create a real PDF, otherwise fallback to a simple blob.
   if (window.jspdf && window.jspdf.jsPDF) {
     try {
       const { jsPDF } = window.jspdf;
@@ -1592,11 +1608,10 @@ async function exportAsJSON(notesToExport, fileName) {
   downloadBlob(blob, `${fileName}.json`);
 }
 
-// Export as DOCX using the `docx` library (browser global). Falls back to TXT if not available.
+// Export as DOCX using the `docx` library
 async function exportAsDOCX(notesToExport, fileName, includeMetadata) {
   const docxLib = window.docx || window.Docx;
   if (!docxLib || !docxLib.Document) {
-    // If docx library not available, fallback to Word-compatible HTML .doc
     console.warn(
       "DOCX library not available; falling back to Word-compatible .doc"
     );
@@ -1607,7 +1622,6 @@ async function exportAsDOCX(notesToExport, fileName, includeMetadata) {
     return;
   }
 
-  // Use the docx library if it appears functional. Wrap generation so runtime errors fallback.
   try {
     const { Document, Packer, Paragraph, TextRun } = docxLib;
     if (!Document || !Packer || !Paragraph || !TextRun) {
@@ -1666,7 +1680,6 @@ async function exportAsDOCX(notesToExport, fileName, includeMetadata) {
   }
 }
 
-// Robust blob downloader
 function downloadBlob(blob, filename) {
   try {
     if (window.navigator && window.navigator.msSaveOrOpenBlob) {
@@ -1681,7 +1694,6 @@ function downloadBlob(blob, filename) {
     document.body.appendChild(link);
     link.click();
 
-    // Create a temporary fallback link in the modal in case the automatic download is blocked
     const fallbackId = "export-fallback-link";
     try {
       let existing = document.getElementById(fallbackId);
@@ -1695,7 +1707,7 @@ function downloadBlob(blob, filename) {
       fallback.className = "text-primary";
       const footer = document.querySelector(".export-footer");
       if (footer) footer.appendChild(fallback);
-      // Also show a modal with a direct download link so users can click regardless of modal visibility
+
       try {
         Swal.fire({
           title: "Manual download",
@@ -1705,7 +1717,6 @@ function downloadBlob(blob, filename) {
           width: 600,
         });
       } catch (e) {
-        // ignore Swal errors
         console.warn("Could not show manual download modal", e);
       }
       setTimeout(() => {
@@ -1731,7 +1742,7 @@ function downloadBlob(blob, filename) {
   }
 }
 
-// Utility Functions
+//
 function handleOnlineStatus() {
   isOnline = navigator.onLine;
   showNotification(
@@ -1752,7 +1763,6 @@ function toggleSidebarCollapse() {
   icon.classList.toggle("fa-chevron-right");
 }
 
-// UI Feedback Functions
 function showSuccess(message) {
   Swal.fire({
     icon: "success",
