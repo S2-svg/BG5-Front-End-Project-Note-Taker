@@ -471,7 +471,7 @@ function handleLogout() {
   todoManager.tasks = [];
   todoManager.save();
 
-  const next = "index.html";
+  const next = "../index.html";
   location.href = `signin.html?next=${encodeURIComponent(next)}`;
 }
 
