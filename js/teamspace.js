@@ -1135,3 +1135,5 @@ function insertSticker(emoji) {
     // 3. Hide the menu
     document.getElementById('stickerMenu').style.display = 'none';
 }
+
+
