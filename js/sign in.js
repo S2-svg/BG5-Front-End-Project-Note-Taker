@@ -1,7 +1,10 @@
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
-function initCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function initCanvas() { 
+    canvas.width = window.innerWidth; 
+    canvas.height = window.innerHeight; 
+}
 class Particle {
     constructor() {
         this.x = Math.random() * canvas.width;
@@ -11,33 +14,35 @@ class Particle {
         this.speedY = Math.random() * 0.4 - 0.2;
     }
     update() {
-        this.x += this.speedX; this.y += this.speedY;
+        this.x += this.speedX; 
+        this.y += this.speedY;
         if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
         if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
     }
     draw() {
-        ctx.fillStyle = '#32e026'; ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#32e026'; 
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+        ctx.fill();
     }
 }
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.update(); p.draw(); });
+    particles.forEach(p => { 
+        p.update(); 
+        p.draw(); 
+    });
     requestAnimationFrame(animate);
 }
 initCanvas(); 
 for (let i = 0; i < 70; i++) particles.push(new Particle());
 animate();
-// --- 2. AUTH LOGIC ---
 let isLoginMode = true;
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
     const registerFields = document.querySelectorAll('.register-only');
-    
-    // Toggle Visibility of Name and Confirm Password
     registerFields.forEach(field => {
         field.style.display = isLoginMode ? "none" : "block";
-        // Toggle required attribute
         const input = field.querySelector('input');
         if(input) input.required = !isLoginMode;
     });
@@ -46,7 +51,6 @@ function toggleAuthMode() {
     document.getElementById('loginBtn').innerText = isLoginMode ? "Sign In" : "Create Account";
     document.getElementById('switch-text').innerHTML = isLoginMode ? 'New here? <a onclick="toggleAuthMode()">Create account</a>' : 'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>';
 }
-// Updated togglePassword to handle multiple inputs
 function togglePassword(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
@@ -65,11 +69,12 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     const btn = document.getElementById('loginBtn');
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
+    
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+    
     setTimeout(() => {
         if (isLoginMode) {
-            // LOGIN LOGIC
             const storedPassword = localStorage.getItem(email);
             if (storedPassword && storedPassword === password) {
                 showMessage("Login Successful!", "success");
@@ -78,19 +83,16 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
             } else {
                 showMessage("Email or Password incorrect!", "error");
                 btn.disabled = false;
-                btn.innerText = "/page/index.html";
+                btn.innerText = "Sign In";
             }
         } else {
-            // REGISTER LOGIC
             const confirmPass = document.getElementById('confirmPassword').value.trim();
             const fullName = document.getElementById('fullname').value.trim();
-            // Validation: Name check
             if (!fullName) {
                 showMessage("Please enter your name.", "error");
                 resetBtn();
                 return;
             }
-            // Validation: Password match check
             if (password !== confirmPass) {
                 showMessage("Passwords do not match!", "error");
                 resetBtn();
@@ -101,11 +103,18 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
                 resetBtn();
             } else {
                 localStorage.setItem(email, password);
-                // Optionally store name: localStorage.setItem(email + "_name", fullName);
-                showMessage("Account Created! You can now login.", "success");
+                localStorage.setItem(email + "_name", fullName);
+                const currentUser = {
+                    email: email,
+                    name: fullName,
+                    loggedIn: true
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMessage("Account Created! Logging you in...", "success");
+                btn.innerHTML = '<i class="fas fa-check"></i> Redirecting...';
+                
                 setTimeout(() => {
-                    toggleAuthMode();
-                    resetBtn();
+                    window.location.href = "/page/index.html";
                 }, 1500);
             }
         }
@@ -120,3 +129,22 @@ function socialLogin(platform) {
     showMessage(platform + " login is not connected yet.", "error");
 }
 document.getElementById("year").textContent = new Date().getFullYear();
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.pathname.includes('index.html')) return;
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+        try {
+            const user = JSON.parse(currentUser);
+            if (user.loggedIn) {
+                window.location.href = "/page/index.html";
+            }
+        } catch (e) {
+            console.log("No valid session found");
+        }
+    }
+});
+window.addEventListener('resize', function() {
+    initCanvas();
+    particles = [];
+    for (let i = 0; i < 70; i++) particles.push(new Particle());
+});
