@@ -103,8 +103,8 @@ function togglePin(type) {
 }
 
 function renderNoteSidebar() {
-    const types = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly', '7-Day'];
-    const colors = { 'Daily': '--cal-orange', 'Weekly': '--cal-purple', 'Monthly': '--cal-pink', 'Quarterly': '--cal-yellow', 'Yearly': '--cal-green', '7-Day': '--cal-red' };
+    const types = ['Daily', 'Weekly', 'Monthly', 'Yearly', '7-Day'];
+    const colors = { 'Daily': '--cal-orange', 'Weekly': '--cal-purple', 'Monthly': '--cal-pink', 'Yearly': '--cal-green', '7-Day': '--cal-red' };
     const icons = { 'Daily': 'far fa-calendar-check', 'Weekly': 'far fa-calendar-alt', 'Monthly': 'far fa-calendar-minus', 'Quarterly': 'fas fa-calendar-day', 'Yearly': 'far fa-calendar', '7-Day': 'far fa-calendar-times' };
 
     const sortedTypes = [...types].sort((a, b) => {
@@ -330,12 +330,11 @@ function showAllNotes() {
     `;
 
     const notesContainer = document.getElementById('all-notes-container');
-    const noteTypes = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly', '7-Day'];
+    const noteTypes = ['Daily', 'Weekly', 'Monthly', 'Yearly', '7-Day'];
     const colors = {
         'Daily': '--cal-orange',
         'Weekly': '--cal-purple',
         'Monthly': '--cal-pink',
-        'Quarterly': '--cal-yellow',
         'Yearly': '--cal-green',
         '7-Day': '--cal-red'
     };
@@ -578,9 +577,9 @@ function showAllNotes() {
 
 // Update the renderNoteSidebar function to add a "View All" button
 function renderNoteSidebar() {
-    const types = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly', '7-Day'];
-    const colors = { 'Daily': '--cal-orange', 'Weekly': '--cal-purple', 'Monthly': '--cal-pink', 'Quarterly': '--cal-yellow', 'Yearly': '--cal-green', '7-Day': '--cal-red' };
-    const icons = { 'Daily': 'far fa-calendar-check', 'Weekly': 'far fa-calendar-alt', 'Monthly': 'far fa-calendar-minus', 'Quarterly': 'fas fa-calendar-day', 'Yearly': 'far fa-calendar', '7-Day': 'far fa-calendar-times' };
+    const types = ['Daily', 'Weekly', 'Monthly', 'Yearly', '7-Day'];
+    const colors = { 'Daily': '--cal-orange', 'Weekly': '--cal-purple', 'Monthly': '--cal-pink', 'Yearly': '--cal-green', '7-Day': '--cal-red' };
+    const icons = { 'Daily': 'far fa-calendar-check', 'Weekly': 'far fa-calendar-alt', 'Monthly': 'far fa-calendar-minus', 'Yearly': 'far fa-calendar', '7-Day': 'far fa-calendar-times' };
 
     const sortedTypes = [...types].sort((a, b) => {
         const aPinned = pinnedNotes.includes(a) ? 1 : 0;
@@ -953,6 +952,7 @@ function setNoteReminder(type) {
         }
     }, timeout);
 }
+
 // --- EXPORT SYSTEM ---
 
 function exportNote(type, format) {
@@ -1034,6 +1034,7 @@ function setNoteReminder(type) {
         }
     }, timeout);
 }
+
 // --- CUTE STICKER PICKER ---
 function insertSticker(emoji) {
     document.execCommand('insertText', false, emoji);
@@ -1135,5 +1136,134 @@ function insertSticker(emoji) {
     // 3. Hide the menu
     document.getElementById('stickerMenu').style.display = 'none';
 }
+
+
+
+// Ensure the name matches what your other functions call
+function renderNoteSidebar() {
+    const container = document.querySelector('.sidebar-section');
+    if (!container) return;
+
+    const types = ['Daily', 'Weekly', 'Monthly',  'Yearly', '7-Day'];
+    const colors = { Daily: '--cal-orange', Weekly: '--cal-purple', Monthly: '--cal-pink', Quarterly: '--cal-yellow', Yearly: '--cal-green', '7-Day': '--cal-red' };
+    const icons = { Daily: 'far fa-calendar-check', Weekly: 'far fa-calendar-alt', Monthly: 'far fa-calendar-minus', Quarterly: 'fas fa-calendar-day', Yearly: 'far fa-calendar', '7-Day': 'far fa-calendar-times' };
+
+    // Sort: pinned items first
+    const sortedTypes = [...types].sort((a, b) => pinnedNotes.includes(b) - pinnedNotes.includes(a));
+
+    const itemsHtml = sortedTypes.map(type => `
+        <div class="note-item ${currentNoteType === type ? 'active' : ''}" 
+             style="cursor: pointer; display: flex; align-items: center; padding: 8px;" 
+             onclick="openNote('${type}')">
+            <i class="${icons[type]}" style="color: var(${colors[type]})"></i>
+            <span style="margin-left: 10px">${type}</span>
+            ${pinnedNotes.includes(type) ? '<i class="fas fa-thumbtack" style="margin-left: auto; font-size: 0.7rem; color: var(--accent-blue)"></i>' : ''}
+        </div>
+    `).join('');
+
+    container.innerHTML = `
+        <h3>Calendar Notes</h3>
+        <div class="note-item" style="margin-bottom: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px;" onclick="showAllNotes()">
+            <i class="fas fa-book" style="color: var(--accent-blue);"></i> <span>View All Notes</span>
+        </div>
+        <div style="height: 1px; background: var(--border-color); margin: 10px 0; width: 100%;"></div>
+        ${itemsHtml}
+    `;
+}
+
+// COMBINED openNote: Handles Sidebar, Toolbar Icons, Reminders, and Exporting
+function openNote(type, date = null) {
+    currentNoteType = type;
+
+    // 1. Update the sidebar list to reflect the active note and pin status
+    renderNoteSidebar();
+
+    // 2. Ask for notification permission (for reminders)
+    requestNotificationPermission();
+
+    // 3. Update the Editor Header with ALL functionality (Stickers, Reminders, Export PDF/Text, Pin)
+    const isPinned = pinnedNotes.includes(type);
+    document.getElementById('noteType').innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; position:relative;">
+            <span>${type} Notes ${date ? `- ${date}` : ''}</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <i class="fas fa-smile" onclick="toggleStickerMenu()" title="Add Sticker" style="cursor:pointer; color:#ff69b4"></i>
+                
+                <i class="fas fa-bell" onclick="setNoteReminder('${type}')" title="Set Reminder" style="cursor:pointer; color:#f59e0b"></i>
+                
+                <i class="fas fa-file-pdf" onclick="exportNote('${type}', 'pdf')" title="Export PDF" style="cursor:pointer; color:#f43f5e; font-size:1.2rem;"></i>
+                
+                <i class="fas fa-file-alt" onclick="exportNote('${type}', 'txt')" title="Export Text" style="cursor:pointer; color:#64748b"></i>
+                
+                <i class="fas fa-thumbtack" id="pinBtn" onclick="togglePin('${type}')" style="cursor:pointer; color: ${isPinned ? 'var(--accent-blue)' : '#cbd5e1'}"></i>
+            </div>
+            
+            <div id="stickerMenu" style="display:none; position:absolute; top:40px; right:0; background:white; border:1px solid #eee; padding:12px; grid-template-columns:repeat(5, 1fr); gap:10px; border-radius:12px; z-index:1000; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:240px; max-height:300px; overflow-y:auto;">
+                <span onclick="insertSticker('📚')" style="cursor:pointer; font-size:1.4rem;">📚</span>
+                <span onclick="insertSticker('📝')" style="cursor:pointer; font-size:1.4rem;">📝</span>
+                <span onclick="insertSticker('🎓')" style="cursor:pointer; font-size:1.4rem;">🎓</span>
+                <span onclick="insertSticker('🧪')" style="cursor:pointer; font-size:1.4rem;">🧪</span>
+                <span onclick="insertSticker('🎨')" style="cursor:pointer; font-size:1.4rem;">🎨</span>
+                <span onclick="insertSticker('✨')" style="cursor:pointer; font-size:1.4rem;">✨</span>
+                <span onclick="insertSticker('🎀')" style="cursor:pointer; font-size:1.4rem;">🎀</span>
+                <span onclick="insertSticker('💡')" style="cursor:pointer; font-size:1.4rem;">💡</span>
+                <span onclick="insertSticker('✅')" style="cursor:pointer; font-size:1.4rem;">✅</span>
+                <span onclick="insertSticker('🎯')" title="Target" style="cursor:pointer; font-size:1.4rem;">🎯</span>
+                <span onclick="insertSticker('🚀')" title="Rocket" style="cursor:pointer; font-size:1.4rem;">🚀</span>
+                <span onclick="insertSticker('⭐️')" title="Star" style="cursor:pointer; font-size:1.4rem;">⭐️</span>
+                <span onclick="insertSticker('🔥')" title="Fire" style="cursor:pointer; font-size:1.4rem;">🔥</span>
+                <span onclick="insertSticker('🌈')" title="Rainbow" style="cursor:pointer; font-size:1.4rem;">🌈</span>
+                <span onclick="insertSticker('🍀')" title="Clover" style="cursor:pointer; font-size:1.4rem;">🍀</span>
+                <span onclick="insertSticker('🦋')" title="Butterfly" style="cursor:pointer; font-size:1.4rem;">🦋</span>
+                <span onclick="insertSticker('🧸')" title="Teddy" style="cursor:pointer; font-size:1.4rem;">🧸</span>
+                <span onclick="insertSticker('☕️')" title="Coffee" style="cursor:pointer; font-size:1.4rem;">☕️</span>
+                <span onclick="insertSticker('🍕')" title="Pizza" style="cursor:pointer; font-size:1.4rem;">🍕</span>
+                <span onclick="insertSticker('💻')" title="Laptop" style="cursor:pointer; font-size:1.4rem;">💻</span>
+                <span onclick="insertSticker('📱')" title="Phone" style="cursor:pointer; font-size:1.4rem;">📱</span>
+                <span onclick="insertSticker('⏰')" title="Alarm" style="cursor:pointer; font-size:1.4rem;">⏰</span>
+                <span onclick="insertSticker('📌')" title="Pin" style="cursor:pointer; font-size:1.4rem;">📌</span>
+                <span onclick="insertSticker('🔍')" title="Search" style="cursor:pointer; font-size:1.4rem;">🔍</span>
+                <span onclick="insertSticker('❤️')" title="Heart" style="cursor:pointer; font-size:1.4rem;">❤️</span>
+                <span onclick="insertSticker('🎉')" title="Party" style="cursor:pointer; font-size:1.4rem;">🎉</span>
+                <span onclick="insertSticker('💰')" title="Money" style="cursor:pointer; font-size:1.4rem;">💰</span>
+                <span onclick="insertSticker('⛱️')" title="Beach" style="cursor:pointer; font-size:1.4rem;">⛱️</span>
+                <span onclick="insertSticker('🌍')" title="Earth" style="cursor:pointer; font-size:1.4rem;">🌍</span>
+                <span onclick="insertSticker('🐱')" title="Cute Kitty" style="cursor:pointer; font-size:1.4rem;">🐱</span>
+                <span onclick="insertSticker('🐰')" title="Bunny" style="cursor:pointer; font-size:1.4rem;">🐰</span>
+                <span onclick="insertSticker('🐼')" title="Panda" style="cursor:pointer; font-size:1.4rem;">🐼</span>
+                <span onclick="insertSticker('🌸')" title="Cherry Blossom" style="cursor:pointer; font-size:1.4rem;">🌸</span>
+                <span onclick="insertSticker('🍓')" title="Strawberry" style="cursor:pointer; font-size:1.4rem;">🍓</span>
+                <span onclick="insertSticker('☁️')" title="Soft Cloud" style="cursor:pointer; font-size:1.4rem;">☁️</span>
+                <span onclick="insertSticker('🌙')" title="Moon" style="cursor:pointer; font-size:1.4rem;">🌙</span>
+                <span onclick="insertSticker('🍭')" title="Candy" style="cursor:pointer; font-size:1.4rem;">🍭</span>
+                <span onclick="insertSticker('🥛')" title="Milk" style="cursor:pointer; font-size:1.4rem;">🥛</span>
+                <span onclick="insertSticker('🎒')" title="Backpack" style="cursor:pointer; font-size:1.4rem;">🎒</span>
+                <span onclick="insertSticker('🖋️')" title="Pen" style="cursor:pointer; font-size:1.4rem;">🖋️</span>
+                <span onclick="insertSticker('📐')" title="Ruler" style="cursor:pointer; font-size:1.4rem;">📐</span>
+                <span onclick="insertSticker('🖍️')" title="Crayon" style="cursor:pointer; font-size:1.4rem;">🖍️</span>
+                <span onclick="insertSticker('📓')" title="Journal" style="cursor:pointer; font-size:1.4rem;">📓</span>
+                <span onclick="insertSticker('📎')" title="Paperclip" style="cursor:pointer; font-size:1.4rem;">📎</span>
+                <span onclick="insertSticker('💭')" title="Thought" style="cursor:pointer; font-size:1.4rem;">💭</span>
+                <span onclick="insertSticker('💯')" title="Perfect Score" style="cursor:pointer; font-size:1.4rem;">💯</span>
+                <span onclick="insertSticker('🔋')" title="Full Energy" style="cursor:pointer; font-size:1.4rem;">🔋</span>
+                <span onclick="insertSticker('🪴')" title="Potted Plant" style="cursor:pointer; font-size:1.4rem;">🪴</span>
+                <span onclick="insertSticker('🧁')" title="Cupcake Reward" style="cursor:pointer; font-size:1.4rem;">🧁</span>
+                <span onclick="insertSticker('🐶')" title="Puppy" style="cursor:pointer; font-size:1.4rem;">🐶</span>
+                <span onclick="insertSticker('🐥')" title="Baby Chick" style="cursor:pointer; font-size:1.4rem;">🐥</span>
+                <span onclick="insertSticker('🎨')" title="Palette" style="cursor:pointer; font-size:1.4rem;">🎨</span>
+                <span onclick="insertSticker('💎')" title="Diamond Focus" style="cursor:pointer; font-size:1.4rem;">💎</span>
+                <span onclick="insertSticker('💤')" title="Nap Time" style="cursor:pointer; font-size:1.4rem;">💤</span>
+            </div>
+        </div>
+    `;
+
+    // 4. Update the Editor Content
+    const noteContent = date ? getDateNote(type, date) : (notes[type] || "");
+    document.getElementById('noteEditor').innerHTML = noteContent || `Start typing your ${type} notes...`;
+
+    // 5. Show the modal
+    document.getElementById('noteModal').style.display = 'flex';
+}
+
 
 
