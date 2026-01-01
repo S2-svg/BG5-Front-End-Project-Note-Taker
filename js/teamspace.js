@@ -1144,7 +1144,7 @@ function renderNoteSidebar() {
     const container = document.querySelector('.sidebar-section');
     if (!container) return;
 
-    const types = ['Daily', 'Weekly', 'Monthly',  'Yearly', '7-Day'];
+    const types = ['Daily', 'Weekly', 'Monthly', 'Yearly', '7-Day'];
     const colors = { Daily: '--cal-orange', Weekly: '--cal-purple', Monthly: '--cal-pink', Quarterly: '--cal-yellow', Yearly: '--cal-green', '7-Day': '--cal-red' };
     const icons = { Daily: 'far fa-calendar-check', Weekly: 'far fa-calendar-alt', Monthly: 'far fa-calendar-minus', Quarterly: 'fas fa-calendar-day', Yearly: 'far fa-calendar', '7-Day': 'far fa-calendar-times' };
 
@@ -1164,7 +1164,10 @@ function renderNoteSidebar() {
     container.innerHTML = `
         <h3>Calendar Notes</h3>
         <div class="note-item" style="margin-bottom: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px;" onclick="showAllNotes()">
-            <i class="fas fa-book" style="color: var(--accent-blue);"></i> <span>View All Notes</span>
+            <i class="fas fa-book"
+   style="color: var(--accent-blue); font-size: 1.6rem;"></i>
+<span>View All Notes</span>
+
         </div>
         <div style="height: 1px; background: var(--border-color); margin: 10px 0; width: 100%;"></div>
         ${itemsHtml}
