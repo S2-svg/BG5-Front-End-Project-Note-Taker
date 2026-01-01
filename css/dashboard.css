@@ -135,9 +135,9 @@ body {
 .logo-text {
   font-size: 1.8rem;
   font-weight: 800;
-  background: var(--success);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: var(--success);
 }
 
 .category-list,
@@ -152,62 +152,6 @@ body {
   color: var(--text-secondary);
   margin-bottom: 1rem;
   font-weight: 600;
-}
-/* button color styles */
-#themeToggleBtn {
-  color: var(--success);
-}
-
-#exportBtn {
-  color: var(--success);
-}
-
-#createTodoBtn {
-  background: var(--success);
-}
-
-#createFirstNoteBtn {
-  background: var(--success);
-}
-
-#closeTodoBtn:hover {
-  background: var(--success);
-}
-#saveTodoBtn {
-  background: var(--success);
-}
-#saveNoteBtn {
-  background: var(--success);
-}
-#startExportBtn {
-  background: var(--success);
-}
-#cancelTodoBtn {
-  border: var(--success);
-  color: white;
-  background: var(--danger);
-}
-#newNoteBtn {
-  background: var(--success);
-}
-#cancelNoteBtn {
-  border: var(--success);
-  color: white;
-  background: var(--danger);
-}
-
-#cancelExportBtn {
-  border: var(--success);
-  color: white;
-  background: var(--danger);
-  padding-left: 2rem;
-}
-#backToNotesBtn {
-  background: var(--success);
-}
-
-#createFirstTodoBtn {
-  background: var(--success);
 }
 
 .category-item,
@@ -303,7 +247,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--success);
+  background: var(--secondary-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1120,6 +1064,7 @@ body {
   transform: none;
 }
 
+/* checked box look for non-accent supporting browsers */
 .form-check-input:checked {
   .export-settings .form-check-input {
     width: 18px;
@@ -1158,6 +1103,7 @@ body {
   line-height: 18px;
 }
 
+/* Sticky footer so action is always visible */
 .export-footer {
   position: sticky;
   bottom: 0;
@@ -1409,6 +1355,7 @@ body.dark-theme .export-footer .btn-primary {
       justify-content: space-between;
     }
 
+    /* Reduce offset on small screens so button doesn't overlap too much */
     @media (max-width: 520px) {
       .export-footer .btn-primary {
         transform: translateY(-8px);
@@ -1473,3 +1420,103 @@ body.dark-theme .export-footer .btn-primary {
   width: 150px;
   margin-left: 0.5rem;
 }
+
+/* styles tag-text*/
+
+#themeToggleBtn{
+  color: var(--success);
+  
+}
+#themeToggleBtn:hover{
+  border-color: var(--success);
+  
+}
+
+#exportBtn{
+  color: var(--success);
+  
+}
+#exportBtn:hover{
+  border-color: var(--success);
+  
+}
+
+#createTodoBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+#createFirstNoteBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+#saveTodoBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+#saveNoteBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+#cancelNoteBtn{
+  color: var(--danger);
+  background: var(--hover-color);
+}
+#cancelNoteBtn:hover{
+  background: var(--danger);
+  color: var(--hover-color);
+  border: var(--danger);
+}
+
+#cancelTodoBtn{
+  color: var(--danger);
+  background: var(--hover-color);
+}
+
+
+#cancelTodoBtn:hover{
+  background: var(--danger);
+  color: var(--hover-color);
+  border: var(--danger);
+}
+
+#createFirstTodoBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+#newNoteBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+#userAvatar{
+  background: var(--success);
+}
+#userName{
+  color: var(--success);
+}
+
+#startExportBtn{
+  color: var(--hover-color);
+  background: var(--success);
+ 
+}
+
+#cancelExportBtn{
+  color: var(--danger);
+  background: var(--hover-color);
+  padding-left: 2.5rem;
+}
+#cancelExportBtn:hover{
+  background: var(--danger);
+  color: var(--hover-color);
+}
+
+#backToNotesBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+
+
