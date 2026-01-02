@@ -145,7 +145,7 @@ header {
     border: 1px solid var(--border-color);
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 17px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -156,6 +156,7 @@ header {
     background: var(--primary-blue);
     color: white;
     border: none;
+    font-size: 17px;
 }
 
 /* Share Dropdown */
