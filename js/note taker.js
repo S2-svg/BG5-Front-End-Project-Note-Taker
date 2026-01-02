@@ -39,7 +39,7 @@ let notes = [
         pinned: false,
         archived: false,
         important: true,
-        color: "#fff3cd",
+        color: "#ffcdcdff",
         priority: "high",
         createdAt: "2024-12-12T00:00:00.000Z",
         updatedAt: "2024-12-12T00:00:00.000Z"

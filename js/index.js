@@ -313,13 +313,9 @@ function changeNoteColor(id) {
   note.updatedAt = Date.now();
   saveAndRefresh();
 }
-
-// 4. Task Functions
 function renderTasks() {
   const list = document.getElementById("todoList");
   list.innerHTML = "";
-
-  // Sort tasks by creation date (newest first)
   const sortedTasks = [...tasks].sort((a, b) => b.createdAt - a.createdAt);
 
   sortedTasks.forEach((task) => {
@@ -375,13 +371,9 @@ function clearCompletedTasks() {
   tasks = tasks.filter((t) => !t.done);
   saveAndRefresh();
 }
-
-// 5. Event Functions
 function renderEvents() {
   const container = document.getElementById("upcomingEventsList");
   container.innerHTML = "";
-
-  // Sort events by date
   const sortedEvents = [...events].sort(
     (a, b) => new Date(a.date) - new Date(b.date)
   );
@@ -410,7 +402,6 @@ function renderEvents() {
   });
   document.getElementById("totalEventsCount").innerText = events.length;
 }
-
 function addNewEvent() {
   const title = prompt("Event Name:");
   if (!title) return;
@@ -443,12 +434,10 @@ function addNewEvent() {
     saveAndRefresh();
   }
 }
-
 function deleteEvent(id) {
   events = events.filter((e) => e.id !== id);
   saveAndRefresh();
 }
-
 function updateProductivityText() {
   const total = tasks.length;
   const done = tasks.filter((t) => t.done).length;
@@ -464,7 +453,6 @@ function updateProductivityText() {
   const percentage = total === 0 ? 0 : (done / total) * 100;
   progressBar.style.width = `${percentage}%`;
 }
-
 function updateQuickStats() {
   const totalNotes = notes.length;
   const pinnedNotes = notes.filter((n) => n.pinned).length;
@@ -474,7 +462,6 @@ function updateQuickStats() {
   document.getElementById("pinnedNotesStat").innerText = pinnedNotes;
   document.getElementById("starredNotesStat").innerText = starredNotes;
 }
-
 function openNoteModal(noteId = null) {
   editingNoteId = noteId;
   const modal = document.getElementById("noteModal");
@@ -482,7 +469,6 @@ function openNoteModal(noteId = null) {
   const contentInput = document.getElementById("noteContent");
   const tagInput = document.getElementById("noteTag");
   const modalTitle = document.getElementById("modalTitle");
-
   if (noteId) {
     const note = notes.find((n) => n.id === noteId);
     if (note) {
@@ -505,7 +491,6 @@ function openNoteModal(noteId = null) {
   }, 10);
   refreshIcons();
 }
-
 function closeModal() {
   const modal = document.getElementById("noteModal");
   modal.style.animation = "fadeIn 0.3s ease-out reverse";
@@ -514,7 +499,6 @@ function closeModal() {
     editingNoteId = null;
   }, 300);
 }
-
 function openSettings() {
   const modal = document.getElementById("settingsModal");
   const nameInput = document.getElementById("userNameInput");
@@ -536,7 +520,6 @@ function openSettings() {
   }, 10);
   refreshIcons();
 }
-
 function closeSettingsModal() {
   const modal = document.getElementById("settingsModal");
   modal.style.animation = "fadeIn 0.3s ease-out reverse";
@@ -544,7 +527,6 @@ function closeSettingsModal() {
     modal.style.display = "none";
   }, 300);
 }
-
 function saveSettings() {
   const nameInput = document.getElementById("userNameInput");
   const autoSaveSelect = document.getElementById("autoSaveInterval");
@@ -564,7 +546,6 @@ function saveSettings() {
   setView(defaultViewSelect.value);
   closeSettingsModal();
 }
-
 function saveNote() {
   const titleInput = document.getElementById("noteTitle");
   const contentInput = document.getElementById("noteContent");
@@ -578,7 +559,6 @@ function saveNote() {
     alert("Please fill in both title and content");
     return;
   }
-
   if (editingNoteId) {
     const noteIndex = notes.findIndex((n) => n.id === editingNoteId);
     if (noteIndex !== -1) {
@@ -603,7 +583,6 @@ function saveNote() {
       updatedAt: Date.now(),
     });
   }
-
   saveAndRefresh();
   closeModal();
 }
@@ -615,7 +594,6 @@ function quickAdd(type) {
     addNewTask();
   }
 }
-
 function exportData() {
   const data = {
     notes,
@@ -624,7 +602,6 @@ function exportData() {
     exportDate: new Date().toISOString(),
     version: "1.0",
   };
-
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json",
   });
@@ -641,7 +618,6 @@ function exportData() {
 
   alert("Data exported successfully!");
 }
-
 function importData() {
   const input = document.createElement("input");
   input.type = "file";
@@ -673,7 +649,6 @@ function importData() {
 
   input.click();
 }
-
 function logout() {
   if (confirm("Are you sure you want to logout?")) {
     localStorage.removeItem("notetaker-user");
@@ -689,12 +664,10 @@ function logout() {
     location.href = `signin.html?next=${encodeURIComponent(next)}`;
   }
 }
-
 function filterNotes() {
   const val = document.getElementById("searchInput").value;
   renderNotes(val);
 }
-
 function updateClock() {
   const now = new Date();
   const timeString = now.toLocaleTimeString([], {
@@ -704,12 +677,10 @@ function updateClock() {
   });
   document.getElementById("digitalClock").innerText = timeString;
 }
-
 function setupAutoSave() {
   if (autoSaveTimer) {
     clearInterval(autoSaveTimer);
   }
-
   const interval =
     parseInt(localStorage.getItem("notetaker-autosave") || "30") * 1000;
   if (interval >= 5000) {
@@ -719,7 +690,6 @@ function setupAutoSave() {
     }, interval);
   }
 }
-
 function saveAndRefresh() {
   localStorage.setItem("saved-notes", JSON.stringify(notes));
   localStorage.setItem("saved-tasks", JSON.stringify(tasks));
@@ -728,11 +698,9 @@ function saveAndRefresh() {
   renderTasks();
   renderEvents();
 }
-
 function refreshIcons() {
   lucide.createIcons();
 }
-
 window.addEventListener("DOMContentLoaded", () => {
   const savedColor = localStorage.getItem("notetaker-theme");
   const savedUser = localStorage.getItem("notetaker-user");
@@ -751,9 +719,7 @@ window.addEventListener("DOMContentLoaded", () => {
   setView(savedDefaultView);
   saveAndRefresh();
   refreshIcons();
-
   const backToTop = document.getElementById("backToTop");
-
   window.addEventListener("scroll", function () {
     if (window.pageYOffset > 300) {
       backToTop.classList.add("visible");
@@ -761,7 +727,6 @@ window.addEventListener("DOMContentLoaded", () => {
       backToTop.classList.remove("visible");
     }
   });
-
   backToTop.addEventListener("click", function (e) {
     e.preventDefault();
     window.scrollTo({
@@ -769,18 +734,15 @@ window.addEventListener("DOMContentLoaded", () => {
       behavior: "smooth",
     });
   });
-
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeModal();
       closeSettingsModal();
     }
   });
-
   document.querySelectorAll(".nav-section").forEach((section, index) => {
     section.style.animationDelay = `${index * 0.1}s`;
   });
-
   window.setView = setView;
   window.changeBg = changeBg;
   window.openNoteModal = openNoteModal;

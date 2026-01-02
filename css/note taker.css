@@ -4,13 +4,14 @@
     box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
 :root {
     --primary-color: #32e026;
     --secondary-color: #82ea7a75;
     --accent-color: #f5f5f5;
     --light-color: #f8f9fa;
-    --dark-color: #343a40;
-    --gray-color: #6c757d;
+    --dark-color: #0b6694f7;
+    --gray-color: #9a9a9a;
     --light-gray: #e9ecef;
     --border-radius: 12px;
     --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
@@ -20,7 +21,7 @@
     --secondary-color: #32e026;
 }
 body {
-    background: linear-gradient(135deg, #f5f7fb 0%, #25de1f 100%);
+    background: linear-gradient(135deg,white 0%, #fcfcfc 100%);
     color: var(--dark-color);
     line-height: 1.6;
     min-height: 100vh;
@@ -28,10 +29,11 @@ body {
 .container {
     display: flex;
     min-height: 100vh;
+    
 }
 .sidebar {
     width: 280px;
-    background: linear-gradient(180deg, #ffffff 0%, #00000025 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff25 100%);
     padding: 25px 20px;
     box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
     display: flex;
@@ -55,7 +57,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-.logo h1 {
+.logo h1 { 
     font-size: 24px;
     font-weight: 800;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -751,7 +753,6 @@ body {
         transform: translateY(0) scale(1);
     }
 }
-/* Subtle Pulse Animation for Important Notes */
 @keyframes subtlePulse {
     0% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.1); }
     50% { box-shadow: 0 8px 30px rgba(255, 107, 107, 0.2); }
@@ -760,7 +761,6 @@ body {
 .note-card.important {
     animation: subtlePulse 3s infinite;
 }
-/* Floating Animation for Pinned Notes */
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-5px); }
@@ -807,7 +807,6 @@ body {
     0% { transform: scale(1); opacity: 1; }
     100% { transform: scale(1.5); opacity: 0; }
 }
-/* Modal Styles */
 .modal {
     display: none;
     position: fixed;
@@ -1066,7 +1065,6 @@ textarea.form-control {
 .toast i {
     font-size: 20px;
 }
-/* Theme Selector */
 .theme-selector {
     position: fixed;
     top: 20px;
@@ -1098,7 +1096,6 @@ textarea.form-control {
     transform: rotate(15deg) scale(1.1);
     border-color: var(--primary-color);
 }
-/* Drop Zone */
 .drop-zone {
     border: 3px dashed var(--primary-color);
     background: rgba(74, 111, 165, 0.05);
@@ -1118,7 +1115,6 @@ textarea.form-control {
     50% { border-color: var(--accent-color); }
     100% { border-color: var(--primary-color); }
 }
-/* Settings Modal */
 .settings-option {
     display: flex;
     justify-content: space-between;
@@ -1139,7 +1135,6 @@ textarea.form-control {
     border: 2px solid var(--light-gray);
     font-size: 14px;
 }
-/* Confirmation Modal */
 .confirmation-modal {
     display: none;
     position: fixed;
@@ -1177,153 +1172,7 @@ textarea.form-control {
     justify-content: center;
     gap: 20px;
 }
-/* Footer Styles */
-.footer {
-    background: linear-gradient(135deg, var(--dark-color), #2c3e50);
-    color: white;
-    padding: 50px 30px 25px;
-    margin-top: 60px;
-    position: relative;
-    overflow: hidden;
-}
-.footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-}
-.footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-}
-.footer-about {
-    margin-bottom: 40px;
-    text-align: center;
-}
-.footer-logo {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-.logo-footer {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    transition: var(--transition);
-}
-.logo-footer:hover {
-    transform: translateY(-5px) scale(1.1);
-    border-color: var(--accent-color);
-}
-.footer-about p {
-    color: rgba(255, 255, 255, 0.8);
-    max-width: 600px;
-    margin: 0 auto 25px;
-    line-height: 1.7;
-}
-.social-icons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-}
-.social-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: white;
-    font-size: 20px;
-    transition: var(--transition);
-    text-decoration: none;
-}
-.social-icon:hover {
-    background: var(--accent-color);
-    transform: translateY(-5px) rotate(5deg);
-    box-shadow: 0 10px 20px rgba(255, 126, 95, 0.3);
-}
-.footer-links {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
-    margin-bottom: 50px;
-}
-.footer-links h3 {
-    color: var(--accent-color);
-    margin-bottom: 20px;
-    font-size: 18px;
-    font-weight: 700;
-}
-.footer-links ul {
-    list-style: none;
-}
-.footer-links li {
-    margin-bottom: 12px;
-}
-.footer-links a {
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    transition: var(--transition);
-    font-size: 14px;
-    display: block;
-    padding: 5px 0;
-    border-radius: 4px;
-}
-.footer-links a:hover {
-    color: white;
-    padding-left: 10px;
-    background: rgba(255, 255, 255, 0.05);
-}
-.footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    text-align: center;
-}
-.bottom-links {
-    display: flex;
-    gap: 25px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-.bottom-links a {
-    color: rgba(255, 255, 255, 0.7);
-    text-decoration: none;
-    font-size: 14px;
-    transition: var(--transition);
-    position: relative;
-    padding: 5px 0;
-}
-.bottom-links a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent-color), transparent);
-    transition: width 0.3s ease;
-}
-.bottom-links a:hover {
-    color: white;
-}
-.bottom-links a:hover::after {
-    width: 100%;
-}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     .notes-grid {
@@ -1503,6 +1352,7 @@ body.dark-theme .modal-content {
     background: #1e293b;
     color: #e2e8f0;
 }
+
 body.dark-theme .form-control {
     background: #0f172a;
     border-color: #334155;
