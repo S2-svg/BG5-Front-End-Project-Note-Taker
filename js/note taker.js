@@ -1,3 +1,107 @@
+// Enhanced data management with persistent storage
+class NoteStorage {
+    static STORAGE_KEY = 'academicNotes';
+    static SETTINGS_KEY = 'academicNotesSettings';
+    static BACKUP_KEY = 'academicNotesBackup';
+
+    static saveNotes(notes) {
+        try {
+            // Create backup before saving
+            const currentNotes = this.loadNotes();
+            localStorage.setItem(this.BACKUP_KEY, JSON.stringify(currentNotes));
+            
+            // Save new notes
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(notes));
+            return true;
+        } catch (e) {
+            console.error('Error saving notes:', e);
+            return false;
+        }
+    }
+
+    static loadNotes() {
+        try {
+            const savedNotes = localStorage.getItem(this.STORAGE_KEY);
+            if (savedNotes) {
+                return JSON.parse(savedNotes);
+            }
+        } catch (e) {
+            console.error('Error loading notes:', e);
+            this.restoreFromBackup();
+        }
+        return null;
+    }
+
+    static restoreFromBackup() {
+        try {
+            const backup = localStorage.getItem(this.BACKUP_KEY);
+            if (backup) {
+                localStorage.setItem(this.STORAGE_KEY, backup);
+                return JSON.parse(backup);
+            }
+        } catch (e) {
+            console.error('Error restoring from backup:', e);
+        }
+        return null;
+    }
+
+    static saveSettings(settings) {
+        try {
+            localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
+            return true;
+        } catch (e) {
+            console.error('Error saving settings:', e);
+            return false;
+        }
+    }
+
+    static loadSettings() {
+        try {
+            const savedSettings = localStorage.getItem(this.SETTINGS_KEY);
+            if (savedSettings) {
+                return JSON.parse(savedSettings);
+            }
+        } catch (e) {
+            console.error('Error loading settings:', e);
+        }
+        return null;
+    }
+
+    static clearAll() {
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+            localStorage.removeItem(this.SETTINGS_KEY);
+            localStorage.removeItem(this.BACKUP_KEY);
+            return true;
+        } catch (e) {
+            console.error('Error clearing storage:', e);
+            return false;
+        }
+    }
+
+    static exportNotes() {
+        const notes = this.loadNotes() || [];
+        const dataStr = JSON.stringify(notes, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileName = `academic-notes-backup-${new Date().toISOString().split('T')[0]}.json`;
+        return { dataUri, exportFileName };
+    }
+
+    static importNotes(jsonData) {
+        try {
+            const importedNotes = JSON.parse(jsonData);
+            if (Array.isArray(importedNotes)) {
+                return importedNotes;
+            }
+        } catch (e) {
+            console.error('Error parsing imported notes:', e);
+            throw new Error('Invalid notes format');
+        }
+        return null;
+    }
+}
+
+// Main application data and state
 let notes = [
     {
         id: 1,
@@ -165,6 +269,7 @@ let notes = [
         updatedAt: "2024-12-08T00:00:00.000Z"
     }
 ];
+
 let settings = {
     defaultColor: "white",
     defaultPriority: "medium",
@@ -175,6 +280,8 @@ let settings = {
     theme: "light",
     sortBy: "newest"
 };
+
+// DOM Elements
 const notesGrid = document.getElementById('notesGrid');
 const newNoteBtn = document.getElementById('newNoteBtn');
 const noteModal = document.getElementById('noteModal');
@@ -220,6 +327,7 @@ const totalNotesStatEl = document.getElementById('totalNotesStat');
 const charCountEl = document.getElementById('charCount');
 const productivityFill = document.getElementById('productivityFill');
 const productivityText = document.getElementById('productivityText');
+
 const folderCountElements = {
     'all': document.getElementById('allCount'),
     'general-english': document.getElementById('generalEnglishCount'),
@@ -234,6 +342,8 @@ const folderCountElements = {
     'english-for-it': document.getElementById('englishForItCount'),
     'design': document.getElementById('designCount')
 };
+
+// Application State
 let currentNoteId = null;
 let isEditing = false;
 let currentView = 'today';
@@ -243,45 +353,41 @@ let noteToDelete = null;
 let sortOrder = 'newest';
 let showImportantOnly = false;
 let autoSaveTimer;
+
+// Initialize Application
 function initApp() {
-    loadSettings();
-    loadNotesFromStorage();
+    loadData();
     displayNotes(getFilteredNotes());
     updateStats();
     updateFolderCounts();
-    setupEventListeners();
     setCurrentDate();
     updateProductivity();
+    setupEventListeners();
     startAutoSave();
     showToast('Academic Notebook loaded successfully!', 'success');
 }
-function loadNotesFromStorage() {
-    const savedNotes = localStorage.getItem('academicNotes');
-    if (savedNotes) {
-        try {
-            const parsedNotes = JSON.parse(savedNotes);
-            if (Array.isArray(parsedNotes) && parsedNotes.length > 0) {
-                notes = parsedNotes;
-            }
-        } catch (e) {
-            console.error('Error loading notes:', e);
-            showToast('Error loading saved notes', 'error');
-        }
-    }
-}
-function loadSettings() {
-    const savedSettings = localStorage.getItem('academicNotesSettings');
+
+// Data Management Functions
+function loadData() {
+    // Load settings
+    const savedSettings = NoteStorage.loadSettings();
     if (savedSettings) {
-        try {
-            const parsedSettings = JSON.parse(savedSettings);
-            settings = { ...settings, ...parsedSettings };
-            applySettings();
-        } catch (e) {
-            console.error('Error loading settings:', e);
-        }
+        settings = { ...settings, ...savedSettings };
+        applySettings();
+    }
+    
+    // Load notes
+    const savedNotes = NoteStorage.loadNotes();
+    if (savedNotes && savedNotes.length > 0) {
+        notes = savedNotes;
+    } else {
+        // Initialize with default notes and save them
+        NoteStorage.saveNotes(notes);
     }
 }
+
 function applySettings() {
+    // Apply theme
     if (settings.theme === 'dark') {
         enableDarkTheme();
         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
@@ -291,61 +397,63 @@ function applySettings() {
         nightModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
         nightModeToggle.title = 'Disable Night Mode';
     }
+    
+    // Apply sort order
     sortOrder = settings.sortBy;
     updateSortButtons();
+    
+    // Apply other settings
+    noteContent.spellcheck = settings.spellCheck;
+    charCounter.style.display = settings.showCharCount ? 'block' : 'none';
+    
+    // Update form inputs
     document.getElementById('defaultColor').value = settings.defaultColor;
     document.getElementById('defaultPriority').value = settings.defaultPriority;
     document.getElementById('autoSaveInterval').value = settings.autoSaveInterval;
     document.getElementById('notesPerPage').value = settings.notesPerPage;
     document.getElementById('spellCheck').checked = settings.spellCheck;
     document.getElementById('showCharCount').checked = settings.showCharCount;
-    noteContent.spellcheck = settings.spellCheck;
-    charCounter.style.display = settings.showCharCount ? 'block' : 'none';
 }
-function saveNotesToStorage() {
-    try {
-        localStorage.setItem('academicNotes', JSON.stringify(notes));
-    } catch (e) {
-        console.error('Error saving notes:', e);
-        showToast('Error saving notes', 'error');
-    }
+
+function saveData() {
+    NoteStorage.saveNotes(notes);
+    NoteStorage.saveSettings(settings);
 }
-function saveSettingsToStorage() {
-    try {
-        localStorage.setItem('academicNotesSettings', JSON.stringify(settings));
-    } catch (e) {
-        console.error('Error saving settings:', e);
-        showToast('Error saving settings', 'error');
-    }
-}
+
 function startAutoSave() {
     if (autoSaveTimer) clearInterval(autoSaveTimer);
     autoSaveTimer = setInterval(() => {
-        saveNotesToStorage();
+        saveData();
     }, settings.autoSaveInterval * 1000);
 }
+
+// Note Display Functions
 function displayNotes(notesArray) {
     notesGrid.innerHTML = '';
+    
     if (notesArray.length === 0) {
         notesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; color: var(--gray-color); padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85)); border-radius: var(--border-radius); box-shadow: var(--box-shadow); border: 2px dashed rgba(74, 111, 165, 0.3); backdrop-filter: blur(10px); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(74, 111, 165, 0.05), rgba(255, 126, 95, 0.05)); z-index: -1;"></div>
-                <i class="fas fa-sticky-note" style="font-size: 64px; margin-bottom: 20px; opacity: 0.2;"></i>
-                <h3 style="margin-bottom: 15px; color: var(--dark-color);">No notes found</h3>
+            <div style="grid-column: 1 / -1; text-align: center; color: var(--gray-color); padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85)); border-radius: var(--border-radius); box-shadow: var(--box-shadow); border: 2px dashed rgba(16, 158, 110, 0.3); backdrop-filter: blur(10px); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(16, 158, 110, 0.05), rgba(255, 126, 95, 0.05)); z-index: -1;"></div>
+                <i class="fas fa-sticky-note" style="font-size: 64px; margin-bottom: 20px; opacity: 0.2; color: #109e6e;"></i>
+                <h3 style="margin-bottom: 15px; color: #109e6e;">No notes found</h3>
                 <p>Create your first note or try a different filter.</p>
-                <button class="btn btn-primary" onclick="openNewNote()" style="margin-top: 25px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border: none; padding: 12px 28px; border-radius: 25px; font-weight: 700; transition: var(--transition); box-shadow: 0 6px 20px rgba(74, 111, 165, 0.3);">
+                <button class="btn btn-primary" onclick="openNewNote()" style="margin-top: 25px; background: linear-gradient(135deg, #109e6e, rgba(16, 158, 110, 0.8)); border: none; padding: 12px 28px; border-radius: 25px; font-weight: 700; transition: var(--transition); box-shadow: 0 6px 20px rgba(16, 158, 110, 0.3);">
                     <i class="fas fa-plus"></i> Create First Note
                 </button>
             </div>
         `;
         return;
     }
+    
     const sortedNotes = sortNotes([...notesArray]);
-    const displayNotes = sortedNotes.slice(0, settings.notesPerPage === 100 ? sortedNotes.length : settings.notesPerPage); 
+    const displayNotes = sortedNotes.slice(0, settings.notesPerPage === 100 ? sortedNotes.length : settings.notesPerPage);
+    
     displayNotes.forEach(note => {
         const noteCard = createNoteCard(note);
         notesGrid.appendChild(noteCard);
     });
+    
     if (sortedNotes.length > displayNotes.length) {
         const remaining = sortedNotes.length - displayNotes.length;
         const paginationInfo = document.createElement('div');
@@ -354,17 +462,18 @@ function displayNotes(notesArray) {
         notesGrid.appendChild(paginationInfo);
     }
 }
+
 function createNoteCard(note) {
     const noteCard = document.createElement('div');
     noteCard.className = 'note-card';
     noteCard.dataset.id = note.id;
     noteCard.style.backgroundColor = note.color;
+    
     if (note.pinned) noteCard.classList.add('pinned');
     if (note.archived) noteCard.classList.add('archived');
     if (note.important) noteCard.classList.add('important');
-    const displayDate = note.date === 'Today' ? note.date : 
-                      note.date === 'Yesterday' ? note.date : 
-                      formatDisplayDate(note.date);
+    
+    const displayDate = formatDisplayDate(note.date);
     const priorityBadge = getPriorityBadge(note.priority);
     const tagsHtml = note.tags.map(tag => 
         `<span class="tag">${escapeHtml(tag)}</span>`
@@ -372,6 +481,7 @@ function createNoteCard(note) {
     const previewContent = note.content.length > 200 ? 
         note.content.substring(0, 200) + '...' : note.content;
     const folderBadge = note.folder.replace('-', ' ').toUpperCase();
+    
     noteCard.innerHTML = `
         <div class="note-header">
             <div>
@@ -401,301 +511,71 @@ function createNoteCard(note) {
             </button>
         </div>
     `;
+    
+    // Event listeners
     noteCard.addEventListener('click', (e) => {
         if (!e.target.closest('.note-actions')) {
             openEditNote(note.id);
         }
     });
-    noteCard.querySelector('.pin-btn').addEventListener('click', (e) => {
+    
+    const pinBtn = noteCard.querySelector('.pin-btn');
+    const importantBtn = noteCard.querySelector('.important-btn');
+    const archiveBtn = noteCard.querySelector('.archive-btn');
+    const deleteBtn = noteCard.querySelector('.delete-btn');
+    
+    pinBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         togglePin(note.id);
     });
-    noteCard.querySelector('.important-btn').addEventListener('click', (e) => {
+    
+    importantBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleImportant(note.id);
     });
-    noteCard.querySelector('.archive-btn').addEventListener('click', (e) => {
+    
+    archiveBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleArchive(note.id);
     });
-    noteCard.querySelector('.delete-btn').addEventListener('click', (e) => {
+    
+    deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         confirmDeleteNote(note.id);
     });
+    
     return noteCard;
 }
+
 function sortNotes(notesArray) {
+    const pinnedNotes = notesArray.filter(note => note.pinned);
+    const otherNotes = notesArray.filter(note => !note.pinned);
+    
+    let sortedOtherNotes;
     switch(sortOrder) {
         case 'newest':
-            return notesArray.sort((a, b) => {
-                if (a.pinned && !b.pinned) return -1;
-                if (!a.pinned && b.pinned) return 1;
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            });
+            sortedOtherNotes = otherNotes.sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            break;
         case 'oldest':
-            return notesArray.sort((a, b) => {
-                if (a.pinned && !b.pinned) return -1;
-                if (!a.pinned && b.pinned) return 1;
-                return new Date(a.createdAt) - new Date(b.createdAt);
-            });
+            sortedOtherNotes = otherNotes.sort((a, b) => 
+                new Date(a.createdAt) - new Date(b.createdAt)
+            );
+            break;
         case 'alphabetical':
-            return notesArray.sort((a, b) => {
-                if (a.pinned && !b.pinned) return -1;
-                if (!a.pinned && b.pinned) return 1;
-                return a.title.localeCompare(b.title);
-            });
-        default:
-            return notesArray;
-    }
-}
-function updateSortButtons() {
-    sortNewestBtn.classList.toggle('active', sortOrder === 'newest');
-    sortOldestBtn.classList.toggle('active', sortOrder === 'oldest');
-    sortAlphabeticalBtn.classList.toggle('active', sortOrder === 'alphabetical');
-    filterImportantBtn.classList.toggle('active', showImportantOnly);
-}
-function getFilteredNotes() {
-    let filteredNotes = [...notes];
-    switch(currentView) {
-        case 'pinned':
-            filteredNotes = filteredNotes.filter(note => note.pinned && !note.archived);
-            break;
-        case 'archived':
-            filteredNotes = filteredNotes.filter(note => note.archived);
-            break;
-        case 'important':
-            filteredNotes = filteredNotes.filter(note => note.important && !note.archived);
-            break;
-        case 'today':
-            const today = new Date().toDateString();
-            filteredNotes = filteredNotes.filter(note => {
-                const noteDate = new Date(note.createdAt).toDateString();
-                return noteDate === today && !note.archived;
-            });
-            break;
-        case 'all':
-            filteredNotes = filteredNotes.filter(note => !note.archived);
+            sortedOtherNotes = otherNotes.sort((a, b) => 
+                a.title.localeCompare(b.title)
+            );
             break;
         default:
-            if (currentView in folderCountElements) {
-                filteredNotes = filteredNotes.filter(note => note.folder === currentView && !note.archived);
-            } else {
-                filteredNotes = filteredNotes.filter(note => !note.archived);
-            }
-    }
-    if (showImportantOnly) {
-        filteredNotes = filteredNotes.filter(note => note.important);
-    }
-    const searchTerm = searchInput.value.toLowerCase();
-    if (searchTerm) {
-        filteredNotes = filteredNotes.filter(note =>
-            note.title.toLowerCase().includes(searchTerm) ||
-            note.content.toLowerCase().includes(searchTerm) ||
-            note.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-        );
+            sortedOtherNotes = otherNotes;
     }
     
-    return filteredNotes;
+    return [...pinnedNotes, ...sortedOtherNotes];
 }
-function updateStats() {
-    const totalNotes = notes.length;
-    const pinnedNotes = notes.filter(note => note.pinned).length;
-    const archivedNotes = notes.filter(note => note.archived).length;
-    const importantNotes = notes.filter(note => note.important).length;
-    const today = new Date().toDateString();
-    const todayNotes = notes.filter(note => {
-        const noteDate = new Date(note.createdAt).toDateString();
-        return noteDate === today;
-    }).length;
-    const totalChars = notes.reduce((sum, note) => sum + note.content.length, 0);
-    
-    totalNotesEl.textContent = totalNotes;
-    pinnedNotesCountEl.textContent = pinnedNotes;
-    archivedNotesCountEl.textContent = archivedNotes;
-    todayNotesCountEl.textContent = todayNotes;
-    importantNotesCountEl.textContent = importantNotes;
-    totalNotesStatEl.textContent = totalNotes;
-    charCountEl.textContent = formatNumber(totalChars);
-}
-function updateFolderCounts() {
-    const counts = {
-        'all': notes.filter(note => !note.archived).length,
-        'general-english': notes.filter(note => note.folder === 'general-english' && !note.archived).length,
-        'web-design': notes.filter(note => note.folder === 'web-design' && !note.archived).length,
-        'algorithm': notes.filter(note => note.folder === 'algorithm' && !note.archived).length,
-        'student-meeting': notes.filter(note => note.folder === 'student-meeting' && !note.archived).length,
-        'database': notes.filter(note => note.folder === 'database' && !note.archived).length,
-        'software-deployment': notes.filter(note => note.folder === 'software-deployment' && !note.archived).length,
-        'frontend': notes.filter(note => note.folder === 'frontend' && !note.archived).length,
-        'professional-life': notes.filter(note => note.folder === 'professional-life' && !note.archived).length,
-        'backend': notes.filter(note => note.folder === 'backend' && !note.archived).length,
-        'english-for-it': notes.filter(note => note.folder === 'english-for-it' && !note.archived).length,
-        'design': notes.filter(note => note.folder === 'design' && !note.archived).length
-    };
-    Object.entries(counts).forEach(([folder, count]) => {
-        if (folderCountElements[folder]) {
-            folderCountElements[folder].textContent = count;
-        }
-    });
-}
-function updateProductivity() {
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const weeklyNotes = notes.filter(note => new Date(note.createdAt) > oneWeekAgo).length;
-    const percentage = Math.min((weeklyNotes / 10) * 100, 100);
-    productivityFill.style.width = `${percentage}%`;
-    if (weeklyNotes === 0) {
-        productivityText.textContent = 'No notes created this week. Start writing!';
-    } else if (weeklyNotes < 3) {
-        productivityText.textContent = `${weeklyNotes} notes this week - Keep going!`;
-    } else if (weeklyNotes < 7) {
-        productivityText.textContent = `${weeklyNotes} notes this week - Good progress!`;
-    } else {
-        productivityText.textContent = `${weeklyNotes} notes this week - Excellent work!`;
-    }
-}
-function setupEventListeners() {
-    newNoteBtn.addEventListener('click', openNewNote);
-    closeModal.addEventListener('click', closeNoteModal);
-    closeSettings.addEventListener('click', () => settingsModal.style.display = 'none');
-    cancelBtn.addEventListener('click', closeNoteModal);
-    noteForm.addEventListener('submit', saveNote);
-    searchInput.addEventListener('input', () => {
-        displayNotes(getFilteredNotes());
-    });
-    deleteBtn.addEventListener('click', () => {
-        if (currentNoteId) {
-            confirmDeleteNote(currentNoteId);
-        }
-    });
-    cancelDelete.addEventListener('click', () => {
-        deleteModal.style.display = 'none';
-        noteToDelete = null;
-    });
-    confirmDelete.addEventListener('click', deleteNote);
-    themeToggle.addEventListener('click', toggleTheme);
-    nightModeToggle.addEventListener('click', toggleNightMode);
-    noteContent.addEventListener('input', updateCharCounter);
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedColor = this.dataset.color;
-        });
-    });
-    document.querySelectorAll('.priority-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedPriority = this.dataset.priority;
-        });
-    });
-    sortNewestBtn.addEventListener('click', () => {
-        sortOrder = 'newest';
-        settings.sortBy = 'newest';
-        updateSortButtons();
-        displayNotes(getFilteredNotes());
-        saveSettingsToStorage();
-    });
-    sortOldestBtn.addEventListener('click', () => {
-        sortOrder = 'oldest';
-        settings.sortBy = 'oldest';
-        updateSortButtons();
-        displayNotes(getFilteredNotes());
-        saveSettingsToStorage();
-    });
-    sortAlphabeticalBtn.addEventListener('click', () => {
-        sortOrder = 'alphabetical';
-        settings.sortBy = 'alphabetical';
-        updateSortButtons();
-        displayNotes(getFilteredNotes());
-        saveSettingsToStorage();
-    });
-    filterImportantBtn.addEventListener('click', () => {
-        showImportantOnly = !showImportantOnly;
-        updateSortButtons();
-        displayNotes(getFilteredNotes());
-    });
-    exportBtn.addEventListener('click', exportNotes);
-    importBtn.addEventListener('click', () => {
-        dropZone.classList.add('active');
-        fileInput.click();
-    });
-    settingsBtn.addEventListener('click', () => {
-        settingsModal.style.display = 'flex';
-    });
-    saveSettingsBtn.addEventListener('click', saveSettings);
-    resetSettingsBtn.addEventListener('click', resetSettings);
-    fileInput.addEventListener('change', importNotesFromFile);
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--accent-color)';
-        dropZone.style.backgroundColor = 'rgba(255, 126, 95, 0.1)';
-    });
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'var(--primary-color)';
-        dropZone.style.backgroundColor = 'rgba(74, 111, 165, 0.05)';
-    });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--primary-color)';
-        dropZone.style.backgroundColor = 'rgba(74, 111, 165, 0.05)';
-        dropZone.classList.remove('active');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            importNotesFromFile({ target: { files } });
-        }
-    });
-    document.querySelectorAll('.folder-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.folder-item').forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            const folder = this.dataset.folder;
-            currentView = folder;
-            const pageTitle = document.getElementById('currentView');
-            const folderName = this.querySelector('.folder-name').textContent;
-            pageTitle.textContent = folderName;
-            
-            displayNotes(getFilteredNotes());
-            showToast(`Showing ${folderName.toLowerCase()} notes`, 'info');
-        });
-    });
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            const viewType = this.id.replace('Notes', '').toLowerCase();
-            currentView = viewType === 'all' ? 'today' : viewType;
-            const pageTitle = document.getElementById('currentView');
-            pageTitle.textContent = this.querySelector('span').textContent;
-            
-            displayNotes(getFilteredNotes());
-        });
-    });
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-            e.preventDefault();
-            openNewNote();
-        }
-        if (e.key === 'Escape') {
-            if (noteModal.style.display === 'flex') closeNoteModal();
-            if (deleteModal.style.display === 'flex') deleteModal.style.display = 'none';
-            if (settingsModal.style.display === 'flex') settingsModal.style.display = 'none';
-            if (dropZone.classList.contains('active')) dropZone.classList.remove('active');
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            searchInput.focus();
-        }
-    });
-    window.addEventListener('click', (e) => {
-        if (e.target === noteModal) closeNoteModal();
-        if (e.target === deleteModal) deleteModal.style.display = 'none';
-        if (e.target === settingsModal) settingsModal.style.display = 'none';
-    });
-}
+
+// Note CRUD Operations
 function openNewNote() {
     isEditing = false;
     currentNoteId = null;
@@ -711,20 +591,7 @@ function openNewNote() {
     noteModal.style.display = 'flex';
     setTimeout(() => noteTitle.focus(), 100);
 }
-function resetSelections() {
-    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-    const defaultColorOption = document.querySelector(`.color-option[data-color="${settings.defaultColor}"]`);
-    if (defaultColorOption) {
-        defaultColorOption.classList.add('selected');
-        selectedColor = settings.defaultColor;
-    }
-    document.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
-    const defaultPriorityOption = document.querySelector(`.priority-option[data-priority="${settings.defaultPriority}"]`);
-    if (defaultPriorityOption) {
-        defaultPriorityOption.classList.add('selected');
-        selectedPriority = settings.defaultPriority;
-    }
-}
+
 function openEditNote(id) {
     isEditing = true;
     currentNoteId = id;
@@ -738,32 +605,29 @@ function openEditNote(id) {
         noteTags.value = note.tags.join(', ');
         noteFolder.value = note.folder;
         deleteBtn.style.display = 'block';
+        
+        // Set color selection
         document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
         const colorOption = document.querySelector(`.color-option[data-color="${note.color}"]`);
         if (colorOption) {
             colorOption.classList.add('selected');
             selectedColor = note.color;
         }
+        
+        // Set priority selection
         document.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
         const priorityOption = document.querySelector(`.priority-option[data-priority="${note.priority}"]`);
         if (priorityOption) {
             priorityOption.classList.add('selected');
             selectedPriority = note.priority;
         }
+        
         updateCharCounter();
         noteModal.style.display = 'flex';
         setTimeout(() => noteTitle.focus(), 100);
     }
 }
-function updateCharCounter() {
-    const charCount = noteContent.value.length;
-    charCounter.textContent = `Characters: ${charCount}`;
-    charCounter.style.display = settings.showCharCount ? 'block' : 'none';
-}
-function closeNoteModal() {
-    noteModal.style.display = 'none';
-    noteForm.reset();
-}
+
 function saveNote(e) {
     e.preventDefault();
     
@@ -813,97 +677,107 @@ function saveNote(e) {
         notes.unshift(newNote);
         showToast('Note created successfully!', 'success');
     }
-    saveNotesToStorage();
+    
+    saveData();
     displayNotes(getFilteredNotes());
     updateStats();
     updateFolderCounts();
     updateProductivity();
     closeNoteModal();
 }
+
 function togglePin(id) {
     const noteIndex = notes.findIndex(n => n.id === id);
     if (noteIndex !== -1) {
         notes[noteIndex].pinned = !notes[noteIndex].pinned;
         notes[noteIndex].updatedAt = new Date().toISOString();
-        saveNotesToStorage();
+        saveData();
         displayNotes(getFilteredNotes());
         updateStats();
         showToast(notes[noteIndex].pinned ? 'Note pinned!' : 'Note unpinned!', 'info');
     }
 }
+
 function toggleImportant(id) {
     const noteIndex = notes.findIndex(n => n.id === id);
     if (noteIndex !== -1) {
         notes[noteIndex].important = !notes[noteIndex].important;
         notes[noteIndex].updatedAt = new Date().toISOString();
-        saveNotesToStorage();
+        saveData();
         displayNotes(getFilteredNotes());
         updateStats();
         showToast(notes[noteIndex].important ? 'Marked as important!' : 'Removed importance', 'info');
     }
 }
+
 function toggleArchive(id) {
     const noteIndex = notes.findIndex(n => n.id === id);
     if (noteIndex !== -1) {
         notes[noteIndex].archived = !notes[noteIndex].archived;
         notes[noteIndex].updatedAt = new Date().toISOString();
-        saveNotesToStorage();
+        saveData();
         displayNotes(getFilteredNotes());
         updateStats();
         updateFolderCounts();
         showToast(notes[noteIndex].archived ? 'Note archived!' : 'Note unarchived!', 'info');
     }
 }
+
 function confirmDeleteNote(id) {
     noteToDelete = id;
     deleteModal.style.display = 'flex';
 }
+
 function deleteNote() {
     if (noteToDelete) {
         const noteIndex = notes.findIndex(n => n.id === noteToDelete);
         if (noteIndex !== -1) {
-            const noteTitle = notes[noteIndex].title;
+            const noteTitleText = notes[noteIndex].title;
             notes.splice(noteIndex, 1);
-            saveNotesToStorage();
+            saveData();
             displayNotes(getFilteredNotes());
             updateStats();
             updateFolderCounts();
             updateProductivity();
-            showToast(`"${noteTitle}" deleted successfully!`, 'success');
+            showToast(`"${noteTitleText}" deleted successfully!`, 'success');
         }
         deleteModal.style.display = 'none';
         noteToDelete = null;
         closeNoteModal();
     }
 }
+
+// Import/Export Functions
 function exportNotes() {
-    const dataStr = JSON.stringify(notes, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileName = `academic-notes-${new Date().toISOString().split('T')[0]}.json`;
+    const { dataUri, exportFileName } = NoteStorage.exportNotes();
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileName);
     linkElement.click();
     showToast('Notes exported successfully!', 'success');
 }
+
 function importNotesFromFile(event) {
     const file = event.target.files[0];
     if (!file) return;
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
-            const importedNotes = JSON.parse(e.target.result);
-            if (Array.isArray(importedNotes)) {
+            const importedNotes = NoteStorage.importNotes(e.target.result);
+            if (importedNotes) {
                 if (confirm(`Import ${importedNotes.length} notes? This will add them to your existing notes.`)) {
                     let importedCount = 0;
                     importedNotes.forEach(note => {
+                        // Ensure unique IDs
                         note.id = notes.length > 0 ? Math.max(...notes.map(n => n.id)) + 1 : 1;
                         note.createdAt = note.createdAt || new Date().toISOString();
                         note.updatedAt = new Date().toISOString();
                         notes.unshift(note);
                         importedCount++;
                     });
-                    saveNotesToStorage();
+                    
+                    saveData();
                     displayNotes(getFilteredNotes());
                     updateStats();
                     updateFolderCounts();
@@ -921,6 +795,8 @@ function importNotesFromFile(event) {
     event.target.value = '';
     dropZone.classList.remove('active');
 }
+
+// Settings Management
 function saveSettings() {
     settings.defaultColor = document.getElementById('defaultColor').value;
     settings.defaultPriority = document.getElementById('defaultPriority').value;
@@ -928,12 +804,14 @@ function saveSettings() {
     settings.notesPerPage = parseInt(document.getElementById('notesPerPage').value);
     settings.spellCheck = document.getElementById('spellCheck').checked;
     settings.showCharCount = document.getElementById('showCharCount').checked;
-    saveSettingsToStorage();
+    
+    NoteStorage.saveSettings(settings);
     applySettings();
     startAutoSave();
     settingsModal.style.display = 'none';
     showToast('Settings saved successfully!', 'success');
 }
+
 function resetSettings() {
     if (confirm('Reset all settings to default values?')) {
         settings = {
@@ -947,11 +825,244 @@ function resetSettings() {
             sortBy: "newest"
         };
         applySettings();
-        saveSettingsToStorage();
+        NoteStorage.saveSettings(settings);
         startAutoSave();
         showToast('Settings reset to default!', 'info');
     }
 }
+
+// Utility Functions
+function getFilteredNotes() {
+    let filteredNotes = [...notes];
+    
+    // Apply view filter
+    switch(currentView) {
+        case 'pinned':
+            filteredNotes = filteredNotes.filter(note => note.pinned && !note.archived);
+            break;
+        case 'archived':
+            filteredNotes = filteredNotes.filter(note => note.archived);
+            break;
+        case 'important':
+            filteredNotes = filteredNotes.filter(note => note.important && !note.archived);
+            break;
+        case 'today':
+            const today = new Date().toDateString();
+            filteredNotes = filteredNotes.filter(note => {
+                const noteDate = new Date(note.createdAt).toDateString();
+                return noteDate === today && !note.archived;
+            });
+            break;
+        case 'all':
+            filteredNotes = filteredNotes.filter(note => !note.archived);
+            break;
+        default:
+            if (currentView in folderCountElements) {
+                filteredNotes = filteredNotes.filter(note => note.folder === currentView && !note.archived);
+            } else {
+                filteredNotes = filteredNotes.filter(note => !note.archived);
+            }
+    }
+    
+    // Apply important filter
+    if (showImportantOnly) {
+        filteredNotes = filteredNotes.filter(note => note.important);
+    }
+    
+    // Apply search filter
+    const searchTerm = searchInput.value.toLowerCase();
+    if (searchTerm) {
+        filteredNotes = filteredNotes.filter(note =>
+            note.title.toLowerCase().includes(searchTerm) ||
+            note.content.toLowerCase().includes(searchTerm) ||
+            note.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    return filteredNotes;
+}
+
+function updateStats() {
+    const totalNotes = notes.length;
+    const pinnedNotes = notes.filter(note => note.pinned).length;
+    const archivedNotes = notes.filter(note => note.archived).length;
+    const importantNotes = notes.filter(note => note.important).length;
+    const today = new Date().toDateString();
+    const todayNotes = notes.filter(note => {
+        const noteDate = new Date(note.createdAt).toDateString();
+        return noteDate === today;
+    }).length;
+    const totalChars = notes.reduce((sum, note) => sum + note.content.length, 0);
+    
+    totalNotesEl.textContent = totalNotes;
+    pinnedNotesCountEl.textContent = pinnedNotes;
+    archivedNotesCountEl.textContent = archivedNotes;
+    todayNotesCountEl.textContent = todayNotes;
+    importantNotesCountEl.textContent = importantNotes;
+    totalNotesStatEl.textContent = totalNotes;
+    charCountEl.textContent = formatNumber(totalChars);
+}
+
+function updateFolderCounts() {
+    const counts = {
+        'all': notes.filter(note => !note.archived).length,
+        'general-english': notes.filter(note => note.folder === 'general-english' && !note.archived).length,
+        'web-design': notes.filter(note => note.folder === 'web-design' && !note.archived).length,
+        'algorithm': notes.filter(note => note.folder === 'algorithm' && !note.archived).length,
+        'student-meeting': notes.filter(note => note.folder === 'student-meeting' && !note.archived).length,
+        'database': notes.filter(note => note.folder === 'database' && !note.archived).length,
+        'software-deployment': notes.filter(note => note.folder === 'software-deployment' && !note.archived).length,
+        'frontend': notes.filter(note => note.folder === 'frontend' && !note.archived).length,
+        'professional-life': notes.filter(note => note.folder === 'professional-life' && !note.archived).length,
+        'backend': notes.filter(note => note.folder === 'backend' && !note.archived).length,
+        'english-for-it': notes.filter(note => note.folder === 'english-for-it' && !note.archived).length,
+        'design': notes.filter(note => note.folder === 'design' && !note.archived).length
+    };
+    
+    Object.entries(counts).forEach(([folder, count]) => {
+        if (folderCountElements[folder]) {
+            folderCountElements[folder].textContent = count;
+        }
+    });
+}
+
+function updateProductivity() {
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const weeklyNotes = notes.filter(note => new Date(note.createdAt) > oneWeekAgo).length;
+    const percentage = Math.min((weeklyNotes / 10) * 100, 100);
+    
+    productivityFill.style.width = `${percentage}%`;
+    
+    if (weeklyNotes === 0) {
+        productivityText.textContent = 'No notes created this week. Start writing!';
+    } else if (weeklyNotes < 3) {
+        productivityText.textContent = `${weeklyNotes} notes this week - Keep going!`;
+    } else if (weeklyNotes < 7) {
+        productivityText.textContent = `${weeklyNotes} notes this week - Good progress!`;
+    } else {
+        productivityText.textContent = `${weeklyNotes} notes this week - Excellent work!`;
+    }
+}
+
+function resetSelections() {
+    // Reset color selection
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+    const defaultColorOption = document.querySelector(`.color-option[data-color="${settings.defaultColor}"]`);
+    if (defaultColorOption) {
+        defaultColorOption.classList.add('selected');
+        selectedColor = settings.defaultColor;
+    }
+    
+    // Reset priority selection
+    document.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
+    const defaultPriorityOption = document.querySelector(`.priority-option[data-priority="${settings.defaultPriority}"]`);
+    if (defaultPriorityOption) {
+        defaultPriorityOption.classList.add('selected');
+        selectedPriority = settings.defaultPriority;
+    }
+}
+
+function updateCharCounter() {
+    const charCount = noteContent.value.length;
+    charCounter.textContent = `Characters: ${charCount}`;
+    charCounter.style.display = settings.showCharCount ? 'block' : 'none';
+}
+
+function closeNoteModal() {
+    noteModal.style.display = 'none';
+    noteForm.reset();
+}
+
+function updateSortButtons() {
+    sortNewestBtn.classList.toggle('active', sortOrder === 'newest');
+    sortOldestBtn.classList.toggle('active', sortOrder === 'oldest');
+    sortAlphabeticalBtn.classList.toggle('active', sortOrder === 'alphabetical');
+    filterImportantBtn.classList.toggle('active', showImportantOnly);
+}
+
+function getCurrentDate() {
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateForInput(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        const [day, month, year] = parts;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return '';
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+    return dateStr;
+}
+
+function formatDisplayDate(dateStr) {
+    if (dateStr === 'Today') return 'Today';
+    if (dateStr === 'Yesterday') return 'Yesterday';
+    
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return dateStr;
+}
+
+function setCurrentDate() {
+    noteDate.value = new Date().toISOString().split('T')[0];
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatNoteContent(content) {
+    return escapeHtml(content)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+}
+
+function getPriorityBadge(priority) {
+    const badges = {
+        'high': '<span style="color: #dc3545; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: inline-block; vertical-align: middle; backdrop-filter: blur(5px);"><i class="fas fa-exclamation-circle"></i> High</span>',
+        'medium': '<span style="color: #ffc107; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: inline-block; vertical-align: middle; backdrop-filter: blur(5px);"><i class="fas fa-exclamation"></i> Medium</span>',
+        'low': '<span style="color: #28a745; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: inline-block; vertical-align: middle; backdrop-filter: blur(5px);"><i class="fas fa-check-circle"></i> Low</span>'
+    };
+    return badges[priority] || '';
+}
+
+function formatNumber(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+}
+
+// Theme Management
 function toggleTheme() {
     if (settings.theme === 'dark') {
         settings.theme = 'light';
@@ -964,9 +1075,10 @@ function toggleTheme() {
         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
         themeToggle.title = 'Switch to Light Theme';
     }
-    saveSettingsToStorage();
+    NoteStorage.saveSettings(settings);
     showToast(`Switched to ${settings.theme} theme`, 'info');
 }
+
 function toggleNightMode() {
     if (settings.theme === 'night') {
         settings.theme = 'light';
@@ -979,28 +1091,35 @@ function toggleNightMode() {
         nightModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
         nightModeToggle.title = 'Disable Night Mode';
     }
-    saveSettingsToStorage();
+    NoteStorage.saveSettings(settings);
     showToast(`Switched to ${settings.theme === 'night' ? 'night' : 'normal'} mode`, 'info');
 }
+
 function enableDarkTheme() {
     document.body.classList.add('dark-theme');
 }
+
 function disableDarkTheme() {
     document.body.classList.remove('dark-theme');
 }
+
 function enableNightMode() {
     document.body.classList.add('dark-theme');
     document.documentElement.style.setProperty('--primary-color', '#8b9dc3');
     document.documentElement.style.setProperty('--accent-color', '#ff8a65');
 }
+
 function disableNightMode() {
     document.body.classList.remove('dark-theme');
-    document.documentElement.style.setProperty('--primary-color', '#4a6fa5');
-    document.documentElement.style.setProperty('--accent-color', '#ff7e5f');
+    document.documentElement.style.setProperty('--primary-color', '#109e6e');
+    document.documentElement.style.setProperty('--accent-color', '#f5f5f5');
 }
+
+// Toast Notification
 function showToast(message, type = 'info') {
     toastMessage.textContent = message;
     toast.className = `toast ${type}`;
+    
     if (type === 'success') {
         toastIcon.className = 'fas fa-check-circle';
     } else if (type === 'error') {
@@ -1008,78 +1127,197 @@ function showToast(message, type = 'info') {
     } else {
         toastIcon.className = 'fas fa-info-circle';
     }
+    
     toast.classList.add('show');
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
 }
-function getCurrentDate() {
-    const now = new Date();
-    const day = now.getDate();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
-    return `${day}/${month}/${year}`;
+
+// Event Listeners Setup
+function setupEventListeners() {
+    // Note creation and editing
+    newNoteBtn.addEventListener('click', openNewNote);
+    closeModal.addEventListener('click', closeNoteModal);
+    closeSettings.addEventListener('click', () => settingsModal.style.display = 'none');
+    cancelBtn.addEventListener('click', closeNoteModal);
+    noteForm.addEventListener('submit', saveNote);
+    
+    // Search
+    searchInput.addEventListener('input', () => {
+        displayNotes(getFilteredNotes());
+    });
+    
+    // Delete functionality
+    deleteBtn.addEventListener('click', () => {
+        if (currentNoteId) {
+            confirmDeleteNote(currentNoteId);
+        }
+    });
+    
+    cancelDelete.addEventListener('click', () => {
+        deleteModal.style.display = 'none';
+        noteToDelete = null;
+    });
+    
+    confirmDelete.addEventListener('click', deleteNote);
+    
+    // Theme toggles
+    themeToggle.addEventListener('click', toggleTheme);
+    nightModeToggle.addEventListener('click', toggleNightMode);
+    
+    // Character counter
+    noteContent.addEventListener('input', updateCharCounter);
+    
+    // Color options
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedColor = this.dataset.color;
+        });
+    });
+    
+    // Priority options
+    document.querySelectorAll('.priority-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedPriority = this.dataset.priority;
+        });
+    });
+    
+    // Sorting and filtering
+    sortNewestBtn.addEventListener('click', () => {
+        sortOrder = 'newest';
+        settings.sortBy = 'newest';
+        updateSortButtons();
+        displayNotes(getFilteredNotes());
+        NoteStorage.saveSettings(settings);
+    });
+    
+    sortOldestBtn.addEventListener('click', () => {
+        sortOrder = 'oldest';
+        settings.sortBy = 'oldest';
+        updateSortButtons();
+        displayNotes(getFilteredNotes());
+        NoteStorage.saveSettings(settings);
+    });
+    
+    sortAlphabeticalBtn.addEventListener('click', () => {
+        sortOrder = 'alphabetical';
+        settings.sortBy = 'alphabetical';
+        updateSortButtons();
+        displayNotes(getFilteredNotes());
+        NoteStorage.saveSettings(settings);
+    });
+    
+    filterImportantBtn.addEventListener('click', () => {
+        showImportantOnly = !showImportantOnly;
+        updateSortButtons();
+        displayNotes(getFilteredNotes());
+    });
+    
+    // Import/Export
+    exportBtn.addEventListener('click', exportNotes);
+    importBtn.addEventListener('click', () => {
+        dropZone.classList.add('active');
+        fileInput.click();
+    });
+    
+    // Settings
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.style.display = 'flex';
+    });
+    
+    saveSettingsBtn.addEventListener('click', saveSettings);
+    resetSettingsBtn.addEventListener('click', resetSettings);
+    
+    // File handling
+    fileInput.addEventListener('change', importNotesFromFile);
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--accent-color)';
+        dropZone.style.backgroundColor = 'rgba(255, 126, 95, 0.1)';
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = 'var(--primary-color)';
+        dropZone.style.backgroundColor = 'rgba(16, 158, 110, 0.05)';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--primary-color)';
+        dropZone.style.backgroundColor = 'rgba(16, 158, 110, 0.05)';
+        dropZone.classList.remove('active');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            importNotesFromFile({ target: { files } });
+        }
+    });
+    
+    // Folder navigation
+    document.querySelectorAll('.folder-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.folder-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            const folder = this.dataset.folder;
+            currentView = folder;
+            const pageTitle = document.getElementById('currentView');
+            const folderName = this.querySelector('.folder-name').textContent;
+            pageTitle.textContent = folderName;
+            
+            displayNotes(getFilteredNotes());
+            showToast(`Showing ${folderName.toLowerCase()} notes`, 'info');
+        });
+    });
+    
+    // Menu navigation
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            const viewType = this.id.replace('Notes', '').toLowerCase();
+            currentView = viewType === 'all' ? 'today' : viewType;
+            const pageTitle = document.getElementById('currentView');
+            pageTitle.textContent = this.querySelector('span').textContent;
+            
+            displayNotes(getFilteredNotes());
+        });
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            openNewNote();
+        }
+        if (e.key === 'Escape') {
+            if (noteModal.style.display === 'flex') closeNoteModal();
+            if (deleteModal.style.display === 'flex') deleteModal.style.display = 'none';
+            if (settingsModal.style.display === 'flex') settingsModal.style.display = 'none';
+            if (dropZone.classList.contains('active')) dropZone.classList.remove('active');
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+    });
+    
+    // Modal close on outside click
+    window.addEventListener('click', (e) => {
+        if (e.target === noteModal) closeNoteModal();
+        if (e.target === deleteModal) deleteModal.style.display = 'none';
+        if (e.target === settingsModal) settingsModal.style.display = 'none';
+    });
 }
-function formatDateForInput(dateStr) {
-    if (!dateStr) return '';
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-        const [day, month, year] = parts;
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-    return '';
-}
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (!isNaN(date.getTime())) {
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    }
-    return dateStr;
-}
-function formatDisplayDate(dateStr) {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return dateStr;
-}
-function setCurrentDate() {
-    noteDate.value = new Date().toISOString().split('T')[0];
-}
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-function formatNoteContent(content) {
-    return escapeHtml(content)
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-}
-function getPriorityBadge(priority) {
-    const badges = {
-        'high': '<span style="color: #dc3545; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: inline-block; vertical-align: middle; backdrop-filter: blur(5px);"><i class="fas fa-exclamation-circle"></i> High</span>',
-        'medium': '<span style="color: #ffc107; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: inline-block; vertical-align: middle; backdrop-filter: blur(5px);"><i class="fas fa-exclamation"></i> Medium</span>',
-        'low': '<span style="color: #28a745; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 12px; margin-left: 8px; display: inline-block; vertical-align: middle; backdrop-filter: blur(5px);"><i class="fas fa-check-circle"></i> Low</span>'
-    };
-    return badges[priority] || '';
-}
-function formatNumber(num) {
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-}
+
+// Global functions for HTML onclick attributes
 window.setView = function(view) {
     const viewMap = {
         'all': 'all',
@@ -1102,18 +1340,22 @@ window.setView = function(view) {
         showToast(`View changed to ${view}`, 'info');
     }
 };
+
 window.openSettings = function() {
     settingsModal.style.display = 'flex';
 };
+
 window.logout = function() {
     if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('academicNotes');
-        localStorage.removeItem('academicNotesSettings');
+        NoteStorage.clearAll();
         showToast('Logged out successfully. Page will refresh.', 'info');
         setTimeout(() => {
             location.reload();
         }, 1500);
     }
 };
+
 window.exportNotes = exportNotes;
+
+// Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);

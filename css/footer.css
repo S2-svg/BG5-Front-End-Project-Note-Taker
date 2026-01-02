@@ -1,7 +1,7 @@
 :root {
-    --primary-color: #30bb09;
-    --accent-color: #30bb09;
-    --secondary-color: #73e546;
+    --primary-color: #109e6e;
+    --accent-color: #109e6e;
+    --secondary-color: #109e6e;
     --dark-bg: #000112;
     --darker-bg: #02022a;
     --bg-color-1: #000112;
@@ -107,7 +107,7 @@ body {
 .logo-footer:hover {
     transform: translateY(-8px) scale(1.1) rotateY(10deg);
     border-color: var(--accent-color);
-    box-shadow: 0 15px 30px rgba(48, 187, 9, 0.4);
+    box-shadow: 0 15px 30px #109e6e;
 }
 .footer-about p {
     color: var(--light-text);
@@ -155,7 +155,7 @@ body {
 .social-icon:hover {
     background: var(--accent-color);
     transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 8px 20px rgba(48, 187, 9, 0.4);
+    box-shadow: 0 8px 20px #109e6e;
     border-color: var(--accent-color);
 }
 /* Footer Links */
@@ -269,7 +269,7 @@ body {
 }
 .newsletter button {
     padding: 14px 28px;
-    background: linear-gradient(135deg, var(--accent-color), #27a307);
+    background: linear-gradient(135deg, var(--accent-color), #109e6e);
     color: white;
     border: none;
     border-radius: 10px;
@@ -280,9 +280,9 @@ body {
     white-space: nowrap;
 }
 .newsletter button:hover {
-    background: linear-gradient(135deg, #27a307, var(--accent-color));
+    background: linear-gradient(135deg, #109e6e, var(--accent-color));
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(48, 187, 9, 0.3);
+    box-shadow: 0 10px 20px #109e6e;
 }
 /* Footer Bottom */
 .footer-bottom {
@@ -336,14 +336,14 @@ body {
     right: 30px;
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, var(--accent-color), #27a307);
+    background: linear-gradient(135deg, var(--accent-color), #109e6e);
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    box-shadow: 0 6px 20px rgba(48, 187, 9, 0.3);
+    box-shadow: 0 6px 20px #109e6e;
     transition: var(--transition);
     opacity: 0;
     visibility: hidden;
