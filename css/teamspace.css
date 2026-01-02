@@ -5,6 +5,24 @@ body {
     margin: 0;
 }
 
+    :root {
+        --bg-light: #f8fafc;
+        --sidebar-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --primary-blue: #32e026;
+        --border-color: #e2e8f0;
+        --accent-blue: #32e026;
+        --column-todo: #f1f5f9;
+        --column-progress: #eff6ff;
+        --column-done: #f0fdf4;
+        --cal-orange: #f97316;
+        --cal-purple: #a855f7;
+        --cal-pink: #ec4899;
+        --cal-yellow: #eab308;
+        --cal-green: #84cc16;
+        --cal-red: #ef4444;
+        }
 :root {
     --bg-light: #f8fafc;
     --sidebar-bg: #ffffff;

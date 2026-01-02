@@ -493,10 +493,9 @@ function updateThemeButton() {
 }
 
 function updateUserInfo() {
-  if (currentUser && userName && userEmail && userAvatar) {
+  if (currentUser && userName && userAvatar) {
     if (currentUser.uid === "offline-user") {
       userName.textContent = "Guest User";
-      userEmail.textContent = "Using Local Storage";
       userAvatar.innerHTML = '<i class="fas fa-laptop"></i>';
     } else {
       userName.textContent = currentUser.displayName || "User";

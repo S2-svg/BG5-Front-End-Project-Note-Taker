@@ -7,7 +7,7 @@
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --accent: #3b82f6;
-  --success: #10b981;
+  --success: #32e026;
   --warning: #f59e0b;
   --danger: #ef4444;
   --border-color: #e2e8f0;
@@ -22,8 +22,8 @@
   --sidebar-bg: #1e293b;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --accent: #60a5fa;
-  --success: #34d399;
+  --accent: #ff6600;
+  --success: #32e026;
   --warning: #fbbf24;
   --danger: #f87171;
   --border-color: #334155;
@@ -52,6 +52,10 @@ body {
   background: var(--light-bg);
 }
 
+
+
+
+
 /* Sidebar */
 .sidebar {
   width: 280px;
@@ -63,6 +67,7 @@ body {
   transition: all 0.3s ease;
   position: relative;
   z-index: 100;
+  
 }
 
 .sidebar.collapsed {
@@ -123,7 +128,7 @@ body {
 .logo-icon {
   width: 40px;
   height: 40px;
-  background: var(--primary-gradient);
+  background: var(--success);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -137,7 +142,7 @@ body {
   font-weight: 800;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: var(--success);
 }
 
 .category-list,
@@ -164,7 +169,7 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 0.5rem;
-  color: var(--text-secondary);
+  color: var(--success);
 }
 
 .category-item:hover,
@@ -1420,3 +1425,103 @@ body.dark-theme .export-footer .btn-primary {
   width: 150px;
   margin-left: 0.5rem;
 }
+
+/* styles tag-text*/
+
+#themeToggleBtn{
+  color: var(--success);
+  
+}
+#themeToggleBtn:hover{
+  border-color: var(--success);
+  
+}
+
+#exportBtn{
+  color: var(--success);
+  
+}
+#exportBtn:hover{
+  border-color: var(--success);
+  
+}
+
+#createTodoBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+#createFirstNoteBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+#saveTodoBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+#saveNoteBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+#cancelNoteBtn{
+  color: var(--danger);
+  background: var(--hover-color);
+}
+#cancelNoteBtn:hover{
+  background: var(--danger);
+  color: var(--hover-color);
+  border: var(--danger);
+}
+
+#cancelTodoBtn{
+  color: var(--danger);
+  background: var(--hover-color);
+}
+
+
+#cancelTodoBtn:hover{
+  background: var(--danger);
+  color: var(--hover-color);
+  border: var(--danger);
+}
+
+#createFirstTodoBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+#newNoteBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+#userAvatar{
+  background: var(--success);
+}
+#userName{
+  color: var(--success);
+}
+
+#startExportBtn{
+  color: var(--hover-color);
+  background: var(--success);
+ 
+}
+
+#cancelExportBtn{
+  color: var(--danger);
+  background: var(--hover-color);
+  padding-left: 2.5rem;
+}
+#cancelExportBtn:hover{
+  background: var(--danger);
+  color: var(--hover-color);
+}
+
+#backToNotesBtn{
+  color: var(--hover-color);
+  background: var(--success);
+}
+
+
+
