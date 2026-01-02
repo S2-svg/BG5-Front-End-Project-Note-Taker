@@ -686,9 +686,9 @@ main {
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-.stat-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.stat-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
-.stat-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-blue { background: linear-gradient(135deg,#0fad79); }
+.stat-purple { background: linear-gradient(135deg,#18e3a0); }
+.stat-orange { background: linear-gradient(135deg,#16cc8f); }
 
 /* Layout Grid Fix */
 main {
