@@ -1397,6 +1397,41 @@ function deleteSticker(id) {
 // Initialize stickers on load
 document.addEventListener('DOMContentLoaded', renderStickers);
 
+let trashs = JSON.parse(localStorage.getItem('teamSpaceTrash')) || [];
+
+function deleteTask(id) {
+    // 1. Find the task we are about to delete
+    const taskToDelete = tasks.find(t => t.id === id);
+    
+    if (taskToDelete) {
+        // 2. Add it to the trash array with a timestamp
+        trash.push({ ...taskToDelete, deletedAt: new Date().toISOString() });
+        localStorage.setItem('teamSpaceTrash', JSON.stringify(trash));
+    }
+
+    // 3. Now remove it from the active tasks list
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+}
+function getTotalDeletedCount() {
+    // 1. Get the trash from storage
+    const trash = JSON.parse(localStorage.getItem('teamSpaceTrash')) || [];
+    
+    // 2. Return the count
+    return trash.length;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
