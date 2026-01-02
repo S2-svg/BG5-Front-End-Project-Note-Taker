@@ -1256,6 +1256,12 @@ function openNote(type, date = null) {
                 <span onclick="insertSticker('🎨')" title="Palette" style="cursor:pointer; font-size:1.4rem;">🎨</span>
                 <span onclick="insertSticker('💎')" title="Diamond Focus" style="cursor:pointer; font-size:1.4rem;">💎</span>
                 <span onclick="insertSticker('💤')" title="Nap Time" style="cursor:pointer; font-size:1.4rem;">💤</span>
+                <span onclick="insertSticker('🧑‍🎓')" title="Student" style="cursor:pointer; font-size:1.4rem;">🧑‍🎓</span>
+                <span onclick="insertSticker('🧑‍💻')" title="Developer" style="cursor:pointer; font-size:1.4rem;">🧑‍💻</span>
+                <span onclick="insertSticker('🧑‍🏫')" title="Teacher" style="cursor:pointer; font-size:1.4rem;">🧑‍🏫</span>
+                <span onclick="insertSticker('🧑‍🎨')" title="Artist" style="cursor:pointer; font-size:1.4rem;">🧑‍🎨</span>
+                <span onclick="insertSticker('🙋')" title="Volunteer" style="cursor:pointer; font-size:1.4rem;">🙋</span>
+                <span onclick="insertSticker('🤝')" title="Teamwork" style="cursor:pointer; font-size:1.4rem;">🤝</span>
             </div>
         </div>
     `;
