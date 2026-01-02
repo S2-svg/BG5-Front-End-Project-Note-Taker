@@ -265,15 +265,16 @@ aside {
 
 .calendar-month {
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 19px;
     margin-bottom: 15px;
+    color:rgba(0, 0, 0, 0.637);
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
-    font-size: 0.7rem;
+    font-size:13px;
 }
 
 .cal-day-label {
@@ -302,12 +303,14 @@ aside {
     padding: 8px 10px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 14px;
     margin-bottom: 2px;
+    
 }
 
 .note-item:hover {
     background: var(--bg-light);
+   
 }
 
 .note-item.active {
@@ -349,6 +352,7 @@ main {
 
 #todo {
     background: var(--column-todo);
+
 }
 
 #inprogress {
@@ -357,6 +361,7 @@ main {
 
 #done {
     background: var(--column-done);
+
 }
 
 .col-header {
@@ -365,8 +370,9 @@ main {
     align-items: center;
     margin-bottom: 20px;
     font-weight: 800;
-    font-size: 0.75rem;
-    color: #1e293b;
+    font-size: 15px;
+    color:#109e6e;
+    
 }
 
 .count-pill {
