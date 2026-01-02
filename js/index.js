@@ -97,6 +97,8 @@ function loadGuestData() {
             tag: "Strategy",
             pinned: false,
             starred: true,
+            archived: false,
+            deleted: false,
             color: "transparent",
             createdAt: new Date("2024-01-15").getTime(),
         },
@@ -107,6 +109,8 @@ function loadGuestData() {
             tag: "Design",
             pinned: false,
             starred: false,
+            archived: false,
+            deleted: false,
             color: "transparent",
             createdAt: new Date("2024-01-10").getTime(),
         },
@@ -117,6 +121,8 @@ function loadGuestData() {
             tag: "Meeting",
             pinned: true,
             starred: false,
+            archived: false,
+            deleted: false,
             color: "#3b82f6",
             createdAt: new Date("2024-01-05").getTime(),
         },
@@ -127,8 +133,23 @@ function loadGuestData() {
             tag: "Personal",
             pinned: false,
             starred: true,
+            archived: true,
+            deleted: false,
             color: "#f59e0b",
             createdAt: new Date("2024-01-01").getTime(),
+        },
+        {
+            id: 5,
+            title: "Old Project Notes",
+            content: "This note is in trash...",
+            tag: "Archived",
+            pinned: false,
+            starred: false,
+            archived: false,
+            deleted: true,
+            deletedAt: new Date("2024-01-20").getTime(),
+            color: "transparent",
+            createdAt: new Date("2023-12-15").getTime(),
         },
     ];
     
@@ -215,43 +236,131 @@ function logout() {
     }
 }
 
-// Rest of your existing functions (keeping them as is, with small updates)
+// Archive and Trash Functions
+function toggleArchive(id) {
+    const note = notes.find((n) => n.id === id);
+    if (note) {
+        note.archived = !note.archived;
+        note.updatedAt = Date.now();
+        // If archiving, unpin it
+        if (note.archived) {
+            note.pinned = false;
+        }
+        saveAndRefresh();
+    }
+}
+
+function deletePermanently(id) {
+    if (confirm("Permanently delete this note? This action cannot be undone.")) {
+        const noteIndex = notes.findIndex((n) => n.id === id);
+        if (noteIndex !== -1) {
+            notes.splice(noteIndex, 1);
+            saveAndRefresh();
+        }
+    }
+}
+
+function restoreNote(id) {
+    const note = notes.find((n) => n.id === id);
+    if (note) {
+        note.deleted = false;
+        note.deletedAt = null;
+        note.archived = false;
+        saveAndRefresh();
+    }
+}
+
+function emptyTrash() {
+    const deletedNotes = notes.filter(n => n.deleted);
+    if (deletedNotes.length > 0 && confirm(`Permanently delete all ${deletedNotes.length} notes in trash? This action cannot be undone.`)) {
+        notes = notes.filter((n) => !n.deleted);
+        saveAndRefresh();
+    }
+}
+
+function restoreAllNotes() {
+    const deletedNotes = notes.filter(n => n.deleted);
+    if (deletedNotes.length > 0 && confirm(`Restore all ${deletedNotes.length} notes from trash?`)) {
+        notes.forEach(n => {
+            if (n.deleted) {
+                n.deleted = false;
+                n.deletedAt = null;
+            }
+        });
+        saveAndRefresh();
+    }
+}
+
+// View Functions
 function setView(view) {
     currentView = view;
     const title = document.getElementById("gridTitle");
+    const subtitle = document.getElementById("gridSubtitle");
     let icon = '<i data-lucide="pin" style="color: var(--primary)"></i>';
     let text = "My Notes";
+    let subtext = "All your notes in one place";
 
     switch (view) {
         case "starred":
             icon = '<i data-lucide="star" style="color: #fbbf24"></i>';
             text = "Starred Notes";
+            subtext = "Your favorite notes";
             break;
         case "pinned":
             icon = '<i data-lucide="pin" style="color: var(--primary)"></i>';
             text = "Pinned Notes";
+            subtext = "Important notes at the top";
             break;
         case "recent":
             icon = '<i data-lucide="history" style="color: var(--primary)"></i>';
             text = "Recent Notes";
+            subtext = "Recently created or updated";
             break;
         case "notebooks":
             icon = '<i data-lucide="folder" style="color: var(--primary)"></i>';
             text = "Notebooks";
+            subtext = "Organized by notebooks";
             break;
         case "archive":
             icon = '<i data-lucide="archive" style="color: var(--primary)"></i>';
             text = "Archived Notes";
+            subtext = "Notes you want to keep but don't need often";
             break;
         case "trash":
             icon = '<i data-lucide="trash-2" style="color: var(--danger)"></i>';
             text = "Trash";
+            subtext = "Deleted notes are moved here";
             break;
     }
 
     title.innerHTML = `${icon} ${text}`;
+    if (subtitle) {
+        subtitle.innerHTML = subtext;
+    }
     updateNavLinks(view);
     renderNotes();
+    
+    // Add trash management buttons if in trash view
+    if (view === "trash") {
+        const trashNotes = notes.filter(n => n.deleted);
+        if (trashNotes.length > 0) {
+            const grid = document.getElementById("notesGrid");
+            const managementDiv = document.createElement("div");
+            managementDiv.className = "trash-management";
+            managementDiv.innerHTML = `
+                <button class="trash-btn empty-trash-btn" onclick="emptyTrash()">
+                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    Empty Trash (${trashNotes.length})
+                </button>
+                <button class="trash-btn restore-all-btn" onclick="restoreAllNotes()">
+                    <i data-lucide="refresh-ccw" style="width: 16px; height: 16px;"></i>
+                    Restore All
+                </button>
+            `;
+            grid.parentNode.insertBefore(managementDiv, grid);
+        }
+    }
+    
     refreshIcons();
 }
 
@@ -292,6 +401,8 @@ function renderNotes(filter = "") {
     grid.innerHTML = "";
 
     let filteredNotes = [...notes];
+    
+    // Apply search filter
     if (filter) {
         filteredNotes = filteredNotes.filter(
             (n) =>
@@ -300,65 +411,139 @@ function renderNotes(filter = "") {
                 n.tag.toLowerCase().includes(filter.toLowerCase())
         );
     }
+    
+    // Apply view filters
     switch (currentView) {
         case "starred":
-            filteredNotes = filteredNotes.filter((n) => n.starred);
+            filteredNotes = filteredNotes.filter((n) => n.starred && !n.deleted && !n.archived);
             break;
         case "pinned":
-            filteredNotes = filteredNotes.filter((n) => n.pinned);
+            filteredNotes = filteredNotes.filter((n) => n.pinned && !n.deleted && !n.archived);
             break;
         case "recent":
             filteredNotes.sort((a, b) => b.createdAt - a.createdAt);
+            filteredNotes = filteredNotes.filter((n) => !n.deleted && !n.archived);
             break;
         case "archive":
-            filteredNotes = filteredNotes.filter((n) => n.archived);
+            filteredNotes = filteredNotes.filter((n) => n.archived && !n.deleted);
             break;
         case "trash":
             filteredNotes = filteredNotes.filter((n) => n.deleted);
+            // Sort by deletion date (most recent first)
+            filteredNotes.sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+            break;
+        default: // "all"
+            filteredNotes = filteredNotes.filter((n) => !n.deleted && !n.archived);
             break;
     }
-    filteredNotes.sort((a, b) => (b.pinned === a.pinned ? 0 : b.pinned ? 1 : -1));
+
+    // Sort: pinned notes first, then by date (except for trash)
+    if (currentView !== "trash") {
+        filteredNotes.sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return b.createdAt - a.createdAt;
+        });
+    }
 
     if (filteredNotes.length === 0) {
+        let emptyMessage = "No notes found";
+        let emptySubtext = filter ? "Try a different search term" : "Create your first note to get started!";
+        let emptyIcon = "file-text";
+        
+        if (currentView === "archive") {
+            emptyMessage = "No archived notes";
+            emptySubtext = "Archive notes you want to keep but don't need often";
+            emptyIcon = "archive";
+        } else if (currentView === "trash") {
+            emptyMessage = "Trash is empty";
+            emptySubtext = "Deleted notes will appear here";
+            emptyIcon = "trash";
+        }
+        
         grid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-                <i data-lucide="file-text" style="width: 64px; height: 64px; color: var(--text-dim); opacity: 0.3; margin-bottom: 20px;"></i>
-                <h3 style="color: var(--text-dim); margin-bottom: 10px;">No notes found</h3>
-                <p style="color: var(--text-dim); opacity: 0.7;">${
-                    filter
-                        ? "Try a different search term"
-                        : "Create your first note to get started!"
-                }</p>
+                <i data-lucide="${emptyIcon}" 
+                   style="width: 64px; height: 64px; color: var(--text-dim); opacity: 0.3; margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-dim); margin-bottom: 10px;">${emptyMessage}</h3>
+                <p style="color: var(--text-dim); opacity: 0.7;">${emptySubtext}</p>
+                ${currentView === 'trash' ? 
+                    '<button onclick="setView(\'all\')" style="margin-top: 15px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer;">Back to Notes</button>' 
+                    : ''}
             </div>
         `;
     } else {
         filteredNotes.forEach((note) => {
             const card = document.createElement("div");
-            card.className = `note-card ${note.pinned ? "pinned" : ""}`;
+            card.className = `note-card ${note.pinned ? "pinned" : ""} ${note.archived ? "archived" : ""}`;
             if (note.color && note.color !== "transparent")
                 card.style.borderTop = `4px solid ${note.color}`;
 
             const date = new Date(note.createdAt);
             const timeAgo = getTimeAgo(date);
 
+            let actionButtons = '';
+            let statusIndicator = '';
+            
+            if (currentView === "trash") {
+                // Trash view: Restore and Delete Permanently buttons
+                const deletedDate = note.deletedAt ? new Date(note.deletedAt) : null;
+                const deletedAgo = deletedDate ? getTimeAgo(deletedDate) : 'Recently';
+                statusIndicator = `<small style="color: var(--danger); font-size: 11px;">Deleted ${deletedAgo}</small>`;
+                
+                actionButtons = `
+                    <i data-lucide="refresh-ccw" class="icon-btn" onclick="restoreNote(${note.id})" title="Restore"></i>
+                    <i data-lucide="trash-2" class="icon-btn delete-btn" onclick="deletePermanently(${note.id})" title="Delete Permanently"></i>
+                `;
+            } else if (currentView === "archive") {
+                // Archive view: Unarchive button
+                statusIndicator = `<small style="color: var(--primary); font-size: 11px;">Archived</small>`;
+                actionButtons = `
+                    <i data-lucide="palette" class="icon-btn" onclick="changeNoteColor(${note.id})" title="Change Color"></i>
+                    <i data-lucide="archive" class="icon-btn active" onclick="toggleArchive(${note.id})" title="Unarchive"></i>
+                    <i data-lucide="edit-3" class="icon-btn" onclick="editNote(${note.id})" title="Edit"></i>
+                    <i data-lucide="trash-2" class="icon-btn delete-btn" onclick="deleteNote(${note.id})" title="Move to Trash"></i>
+                `;
+            } else {
+                // Regular view: All actions including Archive
+                actionButtons = `
+                    <i data-lucide="palette" class="icon-btn" onclick="changeNoteColor(${note.id})" title="Change Color"></i>
+                    <i data-lucide="pin" class="icon-btn ${note.pinned ? "active" : ""}" onclick="togglePin(${note.id})" title="${note.pinned ? 'Unpin' : 'Pin'}"></i>
+                    <i data-lucide="star" class="icon-btn ${note.starred ? "active" : ""}" onclick="toggleStar(${note.id})" style="${note.starred ? "color:#fbbf24; fill:#fbbf24" : ""}" title="${note.starred ? 'Unstar' : 'Star'}"></i>
+                    <i data-lucide="archive" class="icon-btn" onclick="toggleArchive(${note.id})" title="Archive"></i>
+                    <i data-lucide="edit-3" class="icon-btn" onclick="editNote(${note.id})" title="Edit"></i>
+                    <i data-lucide="trash-2" class="icon-btn delete-btn" onclick="deleteNote(${note.id})" title="Move to Trash"></i>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="note-header">
                     <span class="tag-pill">${note.tag}</span>
                     <div class="note-actions">
-                        <i data-lucide="palette" class="icon-btn" onclick="changeNoteColor(${note.id})"></i>
-                        <i data-lucide="pin" class="icon-btn ${note.pinned ? "active" : ""}" onclick="togglePin(${note.id})"></i>
-                        <i data-lucide="star" class="icon-btn ${note.starred ? "active" : ""}" onclick="toggleStar(${note.id})" style="${note.starred ? "color:#fbbf24; fill:#fbbf24" : ""}"></i>
-                        <i data-lucide="edit-3" class="icon-btn" onclick="editNote(${note.id})"></i>
-                        <i data-lucide="trash-2" class="icon-btn delete-btn" onclick="deleteNote(${note.id})"></i>
+                        ${actionButtons}
                     </div>
                 </div>
                 <h4>${note.title}</h4>
                 <p>${note.content.length > 150 ? note.content.substring(0, 150) + "..." : note.content}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                    <small style="color: var(--text-dim); font-size: 12px;">${timeAgo}</small>
+                    <div>
+                        <small style="color: var(--text-dim); font-size: 12px;">Created ${timeAgo}</small>
+                        ${statusIndicator ? '<br/>' + statusIndicator : ''}
+                    </div>
                     ${note.color && note.color !== "transparent" ? `<div style="width: 12px; height: 12px; border-radius: 50%; background: ${note.color};"></div>` : ""}
                 </div>
             `;
+            
+            // Add visual indicators for archived/deleted notes
+            if (note.archived) {
+                card.style.opacity = "0.9";
+                card.style.borderLeft = "3px solid var(--primary)";
+            }
+            if (note.deleted) {
+                card.style.opacity = "0.7";
+                card.style.filter = "grayscale(30%)";
+            }
+            
             grid.appendChild(card);
         });
     }
@@ -392,6 +577,9 @@ function deleteNote(id) {
         if (noteIndex !== -1) {
             notes[noteIndex].deleted = true;
             notes[noteIndex].deletedAt = Date.now();
+            // Also unarchive and unpin when deleted
+            notes[noteIndex].archived = false;
+            notes[noteIndex].pinned = false;
         }
         saveAndRefresh();
     }
@@ -568,13 +756,22 @@ function updateProductivityText() {
 }
 
 function updateQuickStats() {
-    const totalNotes = notes.length;
-    const pinnedNotes = notes.filter((n) => n.pinned).length;
-    const starredNotes = notes.filter((n) => n.starred).length;
+    const totalNotes = notes.filter(n => !n.deleted).length;
+    const pinnedNotes = notes.filter((n) => n.pinned && !n.deleted && !n.archived).length;
+    const starredNotes = notes.filter((n) => n.starred && !n.deleted && !n.archived).length;
+    const archivedNotes = notes.filter((n) => n.archived && !n.deleted).length;
+    const trashedNotes = notes.filter((n) => n.deleted).length;
 
     document.getElementById("totalNotesStat").innerText = totalNotes;
     document.getElementById("pinnedNotesStat").innerText = pinnedNotes;
     document.getElementById("starredNotesStat").innerText = starredNotes;
+    
+    // You can add these stats to your UI if you have elements for them
+    const archivedStat = document.getElementById("archivedNotesStat");
+    const trashStat = document.getElementById("trashNotesStat");
+    
+    if (archivedStat) archivedStat.innerText = archivedNotes;
+    if (trashStat) trashStat.innerText = trashedNotes;
 }
 
 function openNoteModal(noteId = null) {
@@ -591,6 +788,14 @@ function openNoteModal(noteId = null) {
             contentInput.value = note.content;
             tagInput.value = note.tag;
             modalTitle.innerText = "Edit Note";
+            
+            // Show archive status in modal if archived
+            if (note.archived) {
+                modalTitle.innerHTML += ' <span style="font-size: 12px; color: var(--primary);">(Archived)</span>';
+            }
+            if (note.deleted) {
+                modalTitle.innerHTML += ' <span style="font-size: 12px; color: var(--danger);">(In Trash)</span>';
+            }
         }
     } else {
         titleInput.value = "";
@@ -725,6 +930,8 @@ function saveNote() {
             tag,
             pinned: false,
             starred: false,
+            archived: false,
+            deleted: false,
             color: "transparent",
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -858,6 +1065,67 @@ function refreshIcons() {
     lucide.createIcons();
 }
 
+// Add CSS for trash management
+const style = document.createElement('style');
+style.textContent = `
+    .trash-management {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+        padding: 15px;
+        background: var(--card-bg);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+    
+    .trash-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .trash-btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.9;
+    }
+    
+    .empty-trash-btn {
+        background: var(--danger);
+        color: white;
+    }
+    
+    .restore-all-btn {
+        background: var(--success);
+        color: white;
+    }
+    
+    .note-card.archived {
+        opacity: 0.9;
+        border-left: 3px solid var(--primary);
+    }
+    
+    .icon-btn.active {
+        color: var(--primary);
+        fill: var(--primary);
+    }
+    
+    .icon-btn:hover {
+        background: var(--hover-bg);
+    }
+    
+    .delete-btn:hover {
+        color: var(--danger) !important;
+        fill: var(--danger) !important;
+    }
+`;
+document.head.appendChild(style);
+
 // Update DOMContentLoaded event listener
 window.addEventListener("DOMContentLoaded", () => {
     const savedColor = localStorage.getItem("notetaker-theme");
@@ -914,6 +1182,11 @@ window.addEventListener("DOMContentLoaded", () => {
     window.togglePin = togglePin;
     window.toggleStar = toggleStar;
     window.changeNoteColor = changeNoteColor;
+    window.toggleArchive = toggleArchive;
+    window.deletePermanently = deletePermanently;
+    window.restoreNote = restoreNote;
+    window.emptyTrash = emptyTrash;
+    window.restoreAllNotes = restoreAllNotes;
     window.addNewTask = addNewTask;
     window.toggleTask = toggleTask;
     window.deleteTask = deleteTask;
