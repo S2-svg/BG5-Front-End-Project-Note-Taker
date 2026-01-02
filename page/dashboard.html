@@ -5,16 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nexus Notes | Modern Note Taking App</title>
     <!-- External CSS Libraries -->
-    <link rel="stylesheet" href="/css/footer.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" />
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css"
+    />
+    <link
+      href="https://cdn.quilljs.com/1.3.7/quill.snow.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/dashboard.css" />
-    
+
     <!-- External Scripts (Head) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -23,11 +38,10 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/docx@7.8.1/build/index.js"></script>
   </head>
-  
+
   <body>
     <!-- ========== MAIN APP CONTAINER ========== -->
     <div class="app-container" id="appContainer" style="display: none">
-      
       <!-- SIDEBAR -->
       <div class="sidebar" id="sidebar">
         <!-- Sidebar Toggle -->
@@ -75,14 +89,18 @@
               <i class="fas fa-tasks"></i>
             </div>
             <span class="category-text">To-Do</span>
-            <span class="trash-count" id="todoCount" style="display: none">0</span>
+            <span class="trash-count" id="todoCount" style="display: none"
+              >0</span
+            >
           </div>
           <div class="category-item" data-category="trash">
             <div class="category-icon trash">
               <i class="fas fa-trash"></i>
             </div>
             <span class="category-text">Trash</span>
-            <span class="trash-count" id="trashCount" style="display: none">0</span>
+            <span class="trash-count" id="trashCount" style="display: none"
+              >0</span
+            >
           </div>
         </div>
 
@@ -135,14 +153,17 @@
 
       <!-- ========== MAIN CONTENT ========== -->
       <div class="main-content">
-        
         <!-- TOP BAR -->
         <div class="top-bar">
           <!-- Search -->
           <div class="search-container">
             <div class="search-box">
               <i class="fas fa-search"></i>
-              <input type="text" id="searchInput" placeholder="Search notes..." />
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search notes..."
+              />
             </div>
           </div>
 
@@ -177,7 +198,11 @@
             <button class="btn btn-secondary" id="exportBtn">
               <i class="fas fa-download"></i> Export
             </button>
-            <button class="btn btn-outline-danger" id="logoutBtn" style="display: none">
+            <button
+              class="btn btn-outline-danger"
+              id="logoutBtn"
+              style="display: none"
+            >
               <i class="fas fa-sign-out-alt"></i> Logout
             </button>
           </div>
@@ -210,7 +235,10 @@
               </div>
             </div>
             <div class="stat-item">
-              <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981">
+              <div
+                class="stat-icon"
+                style="background: rgba(16, 185, 129, 0.1); color: #10b981"
+              >
                 <i class="fas fa-check-circle"></i>
               </div>
               <div class="stat-info">
@@ -219,7 +247,10 @@
               </div>
             </div>
             <div class="stat-item">
-              <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b">
+              <div
+                class="stat-icon"
+                style="background: rgba(245, 158, 11, 0.1); color: #f59e0b"
+              >
                 <i class="fas fa-clock"></i>
               </div>
               <div class="stat-info">
@@ -228,7 +259,10 @@
               </div>
             </div>
             <div class="stat-item">
-              <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444">
+              <div
+                class="stat-icon"
+                style="background: rgba(239, 68, 68, 0.1); color: #ef4444"
+              >
                 <i class="fas fa-exclamation-circle"></i>
               </div>
               <div class="stat-info">
@@ -268,7 +302,7 @@
       <!-- END MAIN CONTENT -->
 
       <!-- ========== MODALS ========== -->
-      
+
       <!-- NOTE EDITOR MODAL -->
       <div class="editor-modal" id="editorModal">
         <div class="editor-container">
@@ -282,7 +316,13 @@
           <div class="editor-body">
             <form id="noteForm">
               <div class="form-group">
-                <input type="text" class="form-control" id="noteTitle" placeholder="Note Title" required />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="noteTitle"
+                  placeholder="Note Title"
+                  required
+                />
               </div>
 
               <div class="form-group">
@@ -302,13 +342,22 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
-                    <input type="text" class="form-control" id="noteTags" placeholder="Add tags (comma separated)" />
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="noteTags"
+                      placeholder="Add tags (comma separated)"
+                    />
                   </div>
                 </div>
               </div>
 
               <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input" id="notePinned" />
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="notePinned"
+                />
                 <label class="form-check-label" for="notePinned">
                   Pin this note
                 </label>
@@ -341,11 +390,22 @@
           <div class="editor-body">
             <form id="todoForm">
               <div class="form-group">
-                <input type="text" class="form-control" id="todoTitle" placeholder="To-Do List Title" required />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="todoTitle"
+                  placeholder="To-Do List Title"
+                  required
+                />
               </div>
 
               <div class="form-group">
-                <textarea class="form-control" id="todoDescription" placeholder="Description (optional)" rows="2"></textarea>
+                <textarea
+                  class="form-control"
+                  id="todoDescription"
+                  placeholder="Description (optional)"
+                  rows="2"
+                ></textarea>
               </div>
 
               <div class="form-group">
@@ -353,13 +413,21 @@
                 <div class="todo-list-editor" id="todoListEditor">
                   <!-- Tasks will be added here dynamically -->
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addTaskBtn">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm mt-2"
+                  id="addTaskBtn"
+                >
                   <i class="fas fa-plus"></i> Add Task
                 </button>
               </div>
 
               <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input" id="todoPinned" />
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="todoPinned"
+                />
                 <label class="form-check-label" for="todoPinned">
                   Pin this to-do list
                 </label>
@@ -390,7 +458,12 @@
           </div>
           <div class="export-body">
             <div class="export-options">
-              <div class="export-option" data-format="pdf" tabindex="0" role="button">
+              <div
+                class="export-option"
+                data-format="pdf"
+                tabindex="0"
+                role="button"
+              >
                 <div class="export-icon pdf">
                   <i class="fas fa-file-pdf"></i>
                 </div>
@@ -399,7 +472,12 @@
                   <p>Export as PDF document</p>
                 </div>
               </div>
-              <div class="export-option" data-format="txt" tabindex="0" role="button">
+              <div
+                class="export-option"
+                data-format="txt"
+                tabindex="0"
+                role="button"
+              >
                 <div class="export-icon txt">
                   <i class="fas fa-file-alt"></i>
                 </div>
@@ -408,7 +486,12 @@
                   <p>Export as plain text file</p>
                 </div>
               </div>
-              <div class="export-option" data-format="docx" tabindex="0" role="button">
+              <div
+                class="export-option"
+                data-format="docx"
+                tabindex="0"
+                role="button"
+              >
                 <div class="export-icon docx">
                   <i class="fas fa-file-word"></i>
                 </div>
@@ -417,7 +500,12 @@
                   <p>Export as Microsoft Word document</p>
                 </div>
               </div>
-              <div class="export-option" data-format="json" tabindex="0" role="button">
+              <div
+                class="export-option"
+                data-format="json"
+                tabindex="0"
+                role="button"
+              >
                 <div class="export-icon json">
                   <i class="fas fa-file-code"></i>
                 </div>
@@ -439,24 +527,50 @@
                 </select>
               </div>
               <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input" id="exportAll" checked />
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="exportAll"
+                  checked
+                />
                 <label class="form-check-label" for="exportAll">
                   Export all notes
                 </label>
               </div>
               <div class="form-check mb-3">
-                <input type="checkbox" class="form-check-input" id="includeMetadata" checked />
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="includeMetadata"
+                  checked
+                />
                 <label class="form-check-label" for="includeMetadata">
                   Include metadata (tags, category, dates)
                 </label>
               </div>
               <div class="form-group">
                 <label for="exportFileName">File Name</label>
-                <input type="text" class="form-control" id="exportFileName" value="nexus-notes-export" placeholder="Enter file name" />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="exportFileName"
+                  value="nexus-notes-export"
+                  placeholder="Enter file name"
+                />
               </div>
               <div class="export-actions">
-                <button type="button" class="btn btn-cancel" id="cancelExportBtn">Cancel</button>
-                <button type="button" class="btn btn-primary" id="startExportBtn">
+                <button
+                  type="button"
+                  class="btn btn-cancel"
+                  id="cancelExportBtn"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="startExportBtn"
+                >
                   <i class="fas fa-download"></i> Export Notes
                 </button>
               </div>
@@ -477,149 +591,250 @@
           <i data-lucide="x"></i>
         </button>
       </div>
-      
+
       <div class="color-options" id="colorOptions">
         <!-- Color options will be generated by JavaScript -->
       </div>
-      
+
       <div class="custom-color-picker">
         <h4>Custom Colors</h4>
         <div class="color-input-group">
           <label>Primary:</label>
-          <input type="color" id="primaryColorPicker" value="#30bb09">
-          <input type="text" id="primaryColorText" value="#30bb09" placeholder="#30bb09">
+          <input type="color" id="primaryColorPicker" value="#30bb09" />
+          <input
+            type="text"
+            id="primaryColorText"
+            value="#30bb09"
+            placeholder="#30bb09"
+          />
         </div>
         <div class="color-input-group">
           <label>Accent:</label>
-          <input type="color" id="accentColorPicker" value="#30bb09">
-          <input type="text" id="accentColorText" value="#30bb09" placeholder="#30bb09">
+          <input type="color" id="accentColorPicker" value="#30bb09" />
+          <input
+            type="text"
+            id="accentColorText"
+            value="#30bb09"
+            placeholder="#30bb09"
+          />
         </div>
         <div class="color-input-group">
           <label>Secondary:</label>
-          <input type="color" id="secondaryColorPicker" value="#30bb09">
-          <input type="text" id="secondaryColorText" value="#30bb09" placeholder="#30bb09">
+          <input type="color" id="secondaryColorPicker" value="#30bb09" />
+          <input
+            type="text"
+            id="secondaryColorText"
+            value="#30bb09"
+            placeholder="#30bb09"
+          />
         </div>
         <div class="color-input-group">
           <label>BG Color 1:</label>
-          <input type="color" id="bgColor1Picker" value="#000112">
-          <input type="text" id="bgColor1Text" value="#000112" placeholder="#000112">
+          <input type="color" id="bgColor1Picker" value="#000112" />
+          <input
+            type="text"
+            id="bgColor1Text"
+            value="#000112"
+            placeholder="#000112"
+          />
         </div>
         <div class="color-input-group">
           <label>BG Color 2:</label>
-          <input type="color" id="bgColor2Picker" value="#080336">
-          <input type="text" id="bgColor2Text" value="#080336" placeholder="#080336">
+          <input type="color" id="bgColor2Picker" value="#080336" />
+          <input
+            type="text"
+            id="bgColor2Text"
+            value="#080336"
+            placeholder="#080336"
+          />
         </div>
         <div class="color-input-group">
           <label>BG Color 3:</label>
-          <input type="color" id="bgColor3Picker" value="#02022a">
-          <input type="text" id="bgColor3Text" value="#02022a" placeholder="#02022a">
+          <input type="color" id="bgColor3Picker" value="#02022a" />
+          <input
+            type="text"
+            id="bgColor3Text"
+            value="#02022a"
+            placeholder="#02022a"
+          />
         </div>
       </div>
-      
+
       <div class="color-preview">
         <div class="preview-item preview-primary" title="Primary Color"></div>
         <div class="preview-item preview-accent" title="Accent Color"></div>
-        <div class="preview-item preview-secondary" title="Secondary Color"></div>
+        <div
+          class="preview-item preview-secondary"
+          title="Secondary Color"
+        ></div>
         <div class="preview-item preview-bg1" title="Background Color 1"></div>
         <div class="preview-item preview-bg2" title="Background Color 2"></div>
         <div class="preview-item preview-bg3" title="Background Color 3"></div>
       </div>
-      
+
       <div class="preset-colors">
         <h4>Color Presets</h4>
         <div class="preset-grid" id="presetColors">
           <!-- Preset colors will be generated by JavaScript -->
         </div>
       </div>
-      
+
       <div class="customizer-actions">
         <button class="reset-colors" onclick="resetColors()">Reset</button>
-        <button class="apply-colors" onclick="applyCustomColors()">Apply Colors</button>
+        <button class="apply-colors" onclick="applyCustomColors()">
+          Apply Colors
+        </button>
       </div>
     </div>
 
     <!-- Customizer Toggle Button -->
-    <div class="customizer-toggle" id="customizerToggle" onclick="toggleCustomizer()">
+    <div
+      class="customizer-toggle"
+      id="customizerToggle"
+      onclick="toggleCustomizer()"
+    >
       <i data-lucide="palette"></i>
     </div>
 
     <!-- ========== FOOTER ========== -->
     <footer class="footer">
       <!-- Floating Notes Background -->
-      <div class="floating-note" style="left: 10%; animation-delay: 0s;"></div>
-      <div class="floating-note" style="left: 25%; animation-delay: -3s;"></div>
-      <div class="floating-note" style="left: 45%; animation-delay: -6s;"></div>
-      <div class="floating-note" style="left: 65%; animation-delay: -9s;"></div>
-      <div class="floating-note" style="left: 85%; animation-delay: -12s;"></div>
-      
+      <div class="floating-note" style="left: 10%; animation-delay: 0s"></div>
+      <div class="floating-note" style="left: 25%; animation-delay: -3s"></div>
+      <div class="floating-note" style="left: 45%; animation-delay: -6s"></div>
+      <div class="floating-note" style="left: 65%; animation-delay: -9s"></div>
+      <div class="floating-note" style="left: 85%; animation-delay: -12s"></div>
+
       <div class="footer-container">
         <!-- Footer Top Section -->
         <div class="footer-top">
           <!-- About Section -->
           <div class="footer-about">
             <div class="logo-carousel">
-              <img class="logo-footer" src="/image/rika.png" alt="Note Taker Logo 1" loading="lazy" />
-              <img class="logo-footer" src="/image/Vin.png" alt="Note Taker Logo 2" loading="lazy" />
-              <img class="logo-footer" src="/image/makara.png" alt="Note Taker Logo 3" loading="lazy" />
+              <img
+                class="logo-footer"
+                src="/image/rika.png"
+                alt="Note Taker Logo 1"
+                loading="lazy"
+              />
+              <img
+                class="logo-footer"
+                src="/image/Vin.png"
+                alt="Note Taker Logo 2"
+                loading="lazy"
+              />
+              <img
+                class="logo-footer"
+                src="/image/makara.png"
+                alt="Note Taker Logo 3"
+                loading="lazy"
+              />
             </div>
             <p>
-              NoteTaker Pro is a powerful web-based application that allows users to create, edit, delete, and organize their notes efficiently. Collaborate with teams, customize your workspace, and never forget an idea again.
+              NoteTaker Pro is a powerful web-based application that allows
+              users to create, edit, delete, and organize their notes
+              efficiently. Collaborate with teams, customize your workspace, and
+              never forget an idea again.
             </p>
-            
+
             <!-- Newsletter -->
             <div class="newsletter">
               <div class="newsletter-form">
-                <input type="email" id="newsletterEmail" placeholder="Enter your email for updates" aria-label="Email for newsletter">
+                <input
+                  type="email"
+                  id="newsletterEmail"
+                  placeholder="Enter your email for updates"
+                  aria-label="Email for newsletter"
+                />
                 <button onclick="subscribeNewsletter()">Subscribe</button>
               </div>
             </div>
-            
+
             <!-- Social Icons -->
             <div class="social-icons">
-              <a href="#" class="social-icon" onclick="openSocial('facebook')" aria-label="Facebook">
+              <a
+                href="#"
+                class="social-icon"
+                onclick="openSocial('facebook')"
+                aria-label="Facebook"
+              >
                 <i data-lucide="facebook"></i>
               </a>
-              <a href="#" class="social-icon" onclick="openSocial('twitter')" aria-label="Twitter">
+              <a
+                href="#"
+                class="social-icon"
+                onclick="openSocial('twitter')"
+                aria-label="Twitter"
+              >
                 <i data-lucide="twitter"></i>
               </a>
-              <a href="#" class="social-icon" onclick="openSocial('instagram')" aria-label="Instagram">
+              <a
+                href="#"
+                class="social-icon"
+                onclick="openSocial('instagram')"
+                aria-label="Instagram"
+              >
                 <i data-lucide="instagram"></i>
               </a>
-              <a href="#" class="social-icon" onclick="openSocial('linkedin')" aria-label="LinkedIn">
+              <a
+                href="#"
+                class="social-icon"
+                onclick="openSocial('linkedin')"
+                aria-label="LinkedIn"
+              >
                 <i data-lucide="linkedin"></i>
               </a>
-              <a href="#" class="social-icon" onclick="openSocial('github')" aria-label="GitHub">
+              <a
+                href="#"
+                class="social-icon"
+                onclick="openSocial('github')"
+                aria-label="GitHub"
+              >
                 <i data-lucide="github"></i>
               </a>
             </div>
           </div>
-          
+
           <!-- Footer Links -->
           <div class="footer-links">
             <!-- Column 1: Note Taker Pages -->
             <div class="footer-column">
               <h3>Note Taker Pages</h3>
               <ul>
-                <li><a href="#" onclick="setView('dashboard')">Dashboard</a></li>
-                <li><a href="#" onclick="setView('workspace')">Workspace</a></li>
-                <li><a href="#" onclick="openSettings()">Appearance Settings</a></li>
+                <li>
+                  <a href="#" onclick="setView('dashboard')">Dashboard</a>
+                </li>
+                <li>
+                  <a href="#" onclick="setView('workspace')">Workspace</a>
+                </li>
+                <li>
+                  <a href="#" onclick="openSettings()">Appearance Settings</a>
+                </li>
                 <li><a href="#" onclick="openProfile()">Edit Profile</a></li>
                 <li><a href="#" onclick="logout()">Login / Logout</a></li>
               </ul>
             </div>
-            
+
             <!-- Column 2: Menu Pages -->
             <div class="footer-column">
               <h3>Menu Pages</h3>
               <ul>
                 <li><a href="#" onclick="setView('overview')">Overview</a></li>
-                <li><a href="#" onclick="setView('dashboard')">Dashboard</a></li>
-                <li><a href="#" onclick="setView('notebooks')">Notebooks</a></li>
-                <li><a href="#" onclick="setView('starred')">Starred Notes</a></li>
-                <li><a href="#" onclick="setView('tags')">Tags & Filters</a></li>
+                <li>
+                  <a href="#" onclick="setView('dashboard')">Dashboard</a>
+                </li>
+                <li>
+                  <a href="#" onclick="setView('notebooks')">Notebooks</a>
+                </li>
+                <li>
+                  <a href="#" onclick="setView('starred')">Starred Notes</a>
+                </li>
+                <li>
+                  <a href="#" onclick="setView('tags')">Tags & Filters</a>
+                </li>
               </ul>
             </div>
-            
+
             <!-- Column 3: Workspace -->
             <div class="footer-column">
               <h3>Workspace</h3>
@@ -627,13 +842,17 @@
                 <li><a href="#" onclick="setView('team')">Team Space</a></li>
                 <li><a href="#" onclick="setView('archive')">Archive</a></li>
                 <li><a href="#" onclick="setView('trash')">Trash</a></li>
-                <li><a href="#" onclick="setView('shared')">Shared Notes</a></li>
-                <li><a href="#" onclick="setView('templates')">Templates</a></li>
+                <li>
+                  <a href="#" onclick="setView('shared')">Shared Notes</a>
+                </li>
+                <li>
+                  <a href="#" onclick="setView('templates')">Templates</a>
+                </li>
               </ul>
             </div>
           </div>
         </div>
-        
+
         <!-- Footer Bottom -->
         <div class="footer-bottom">
           <p>Copyright © 2024 – NoteTaker Premium. All Rights Reserved.</p>
@@ -657,10 +876,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
-    
+
     <!-- Custom Scripts -->
     <script src="/js/dashboard.js"></script>
     <script src="/js/footer.js"></script>
-    
   </body>
 </html>

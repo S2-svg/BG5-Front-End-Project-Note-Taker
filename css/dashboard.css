@@ -7,7 +7,7 @@
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --accent: #3b82f6;
-  --success:#109e6e;
+  --success: #109e6e;
   --warning: #f59e0b;
   --danger: #ef4444;
   --border-color: #e2e8f0;
@@ -52,10 +52,6 @@ body {
   background: var(--light-bg);
 }
 
-
-
-
-
 /* Sidebar */
 .sidebar {
   width: 280px;
@@ -67,7 +63,6 @@ body {
   transition: all 0.3s ease;
   position: relative;
   z-index: 100;
-  
 }
 
 .sidebar.collapsed {
@@ -1428,100 +1423,91 @@ body.dark-theme .export-footer .btn-primary {
 
 /* styles tag-text*/
 
-#themeToggleBtn{
+#themeToggleBtn {
   color: var(--success);
-  
 }
-#themeToggleBtn:hover{
+#themeToggleBtn:hover {
   border-color: var(--success);
-  
 }
 
-#exportBtn{
+#exportBtn {
   color: var(--success);
-  
 }
-#exportBtn:hover{
+#exportBtn:hover {
   border-color: var(--success);
-  
 }
 
-#createTodoBtn{
+#createTodoBtn {
   color: var(--hover-color);
   background: var(--success);
 }
-#createFirstNoteBtn{
+#createFirstNoteBtn {
   color: var(--hover-color);
   background: var(--success);
 }
-#saveTodoBtn{
+#saveTodoBtn {
   color: var(--hover-color);
   background: var(--success);
 }
-#saveNoteBtn{
+#saveNoteBtn {
   color: var(--hover-color);
   background: var(--success);
 }
 
-#cancelNoteBtn{
+#cancelNoteBtn {
   color: var(--danger);
   background: var(--hover-color);
 }
-#cancelNoteBtn:hover{
+#cancelNoteBtn:hover {
   background: var(--danger);
   color: var(--hover-color);
   border: var(--danger);
 }
 
-#cancelTodoBtn{
+#cancelTodoBtn {
   color: var(--danger);
   background: var(--hover-color);
 }
 
-
-#cancelTodoBtn:hover{
+#cancelTodoBtn:hover {
   background: var(--danger);
   color: var(--hover-color);
   border: var(--danger);
 }
 
-#createFirstTodoBtn{
+#createFirstTodoBtn {
   color: var(--hover-color);
   background: var(--success);
 }
 
-#newNoteBtn{
+#newNoteBtn {
   color: var(--hover-color);
   background: var(--success);
 }
 
-#userAvatar{
+#userAvatar {
   background: var(--success);
 }
-#userName{
+#userName {
   color: var(--success);
 }
 
-#startExportBtn{
+#startExportBtn {
   color: var(--hover-color);
   background: var(--success);
- 
 }
 
-#cancelExportBtn{
+#cancelExportBtn {
   color: var(--danger);
   background: var(--hover-color);
   padding-left: 2.5rem;
 }
-#cancelExportBtn:hover{
+#cancelExportBtn:hover {
   background: var(--danger);
   color: var(--hover-color);
 }
 
-#backToNotesBtn{
+#backToNotesBtn {
   color: var(--hover-color);
   background: var(--success);
 }
-
-
-
