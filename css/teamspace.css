@@ -115,11 +115,14 @@ header {
     color: white;
     padding: 8px;
     border-radius: 6px;
+    font-size: 30px;
+    
 }
 
 .logo-text h1 {
-    font-size: 1.1rem;
+    font-size: 1.6rem;
     margin: 0;
+    color: #0fad79;
 }
 
 .logo-text p {
