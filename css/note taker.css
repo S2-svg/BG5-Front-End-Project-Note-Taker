@@ -470,7 +470,7 @@ body {
     z-index: 1000 !important;
     box-shadow: 
         0 40px 80px rgba(0, 0, 0, 0.07),
-        0 0 0 2px rgba(255, 255, 255, 0.9),
+        0 0 0 2px rgba(191, 252, 250, 0.9),
         inset 0 0 60px rgba(255, 255, 255, 0.089),
         0 15px 50px rgba(154, 154, 154, 0.062);
 }
@@ -1608,15 +1608,62 @@ body.dark-theme {
     color: #ffffff;
 }
 
+/* Added rule: Change all text to white when in dark theme */
+body.dark-theme,
+body.dark-theme .sidebar,
+body.dark-theme .main-content,
+body.dark-theme .logo h1,
+body.dark-theme .menu-item,
+body.dark-theme .folder-name,
+body.dark-theme .note-content,
+body.dark-theme .search-bar,
+body.dark-theme .search-bar input,
+body.dark-theme .quick-action-btn,
+body.dark-theme .progress-container h4,
+body.dark-theme .note-title,
+body.dark-theme .modal-content,
+body.dark-theme .modal-title,
+body.dark-theme .form-group label,
+body.dark-theme .form-control,
+body.dark-theme .settings-option label,
+body.dark-theme .confirmation-content h3,
+body.dark-theme .confirmation-content p,
+body.dark-theme .note-date,
+body.dark-theme .page-title {
+    color: #ffffff !important;
+}
+
+/* Specific exceptions where text should remain colorful */
+body.dark-theme .note-title {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+body.dark-theme .tag {
+    color: var(--primary-color) !important;
+}
+
+body.dark-theme .action-btn {
+    color: var(--primary-color) !important;
+}
+
+body.dark-theme .folder-count {
+    color: rgb(255, 255, 255) !important;
+}
+
+body.dark-theme .stat-number {
+    color: var(--primary-color) !important;
+}
+
+body.dark-theme .stat-label {
+    color: #a0aec0 !important;
+}
+
 body.dark-theme .sidebar {
     background: linear-gradient(180deg, #1a1a2e 0%, #0a0a1a 100%);
     border-right-color: rgba(0, 217, 255, 0.2);
-}
-
-body.dark-theme .logo h1,
-body.dark-theme .menu-item,
-body.dark-theme .folder-name {
-    color: #e2e8f0;
 }
 
 body.dark-theme .folder-item,
@@ -1636,30 +1683,20 @@ body.dark-theme .progress-container,
 body.dark-theme .note-card {
     background: #1e293b;
     border-color: #334155;
-    color: #ffffff;
 }
 
 body.dark-theme .modal-content {
     background: #1e293b;
-    color: #e2e8f0;
 }
 
 body.dark-theme .form-control {
     background: #0f172a;
     border-color: #334155;
-    color: #e2e8f0;
 }
 
 body.dark-theme .note-card {
     background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(10, 10, 26, 0.85));
     border-color: rgba(0, 217, 255, 0.2);
-}
-
-body.dark-theme .note-title {
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 body.dark-theme .tag {
