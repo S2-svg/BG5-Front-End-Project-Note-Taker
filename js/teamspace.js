@@ -1196,8 +1196,206 @@ function openNote(type, date = null) {
     // 5. Show the modal
     document.getElementById('noteModal').style.display = 'flex';
 }
+// --- NEW RICH UPDATE LOGIC ---
+// Helper for formatting text
+function execCmd(command, value = null) {
+    document.execCommand(command, false, value);
+}
 
+// Override the click listener for "New Update"
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('button');
+    if (btn && btn.textContent.includes('New Update')) {
+        openUpdateModal();
+    }
+});
 
+function openUpdateModal() {
+    document.getElementById('updateTitle').value = '';
+    document.getElementById('richNoteEditor').innerHTML = 'Start writing your update here...';
+    document.getElementById('updateModal').style.display = 'flex';
+}
+
+function closeUpdateModal() {
+    document.getElementById('updateModal').style.display = 'none';
+}
+
+function saveRichUpdate() {
+    const title = document.getElementById('updateTitle').value;
+    const content = document.getElementById('richNoteEditor').innerHTML;
+
+    if (title.trim() === "") {
+        document.getElementById('updateTitle').style.borderColor = "red";
+        return;
+    }
+
+    const newTask = {
+        id: Date.now(),
+        title: title,
+        subtitle: content, // The subtitle now stores the HTML/Rich text
+        assignee: "Unassigned",
+        status: 'todo',
+        color: '#0ea5e9'
+    };
+
+    tasks.push(newTask);
+    renderTasks();
+    closeUpdateModal();
+}
+// Update the moveTask and deleteTask functions if they are missing
+function moveTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (task.status === 'todo') task.status = 'inprogress';
+    else if (task.status === 'inprogress') task.status = 'done';
+    renderTasks();
+}
+
+function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+}
+let selectedIconClass = 'fa-tasks';
+
+function selectIcon(element, iconClass) {
+    document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedIconClass = iconClass;
+}
+
+function saveRichUpdate() {
+    const title = document.getElementById('updateTitle').value;
+    const content = document.getElementById('richNoteEditor').innerHTML;
+    const priority = document.getElementById('taskPriority').value;
+    
+    // Map priority to colors
+    const priorityColors = { 'Low': '#22c55e', 'Medium': '#eab308', 'High': '#ef4444' };
+
+    if (!title.trim()) return; // No alert, just stop
+
+    const newTask = {
+        id: Date.now(),
+        title: title,
+        subtitle: content,
+        priority: priority,
+        icon: selectedIconClass,
+        assignee: "Unassigned",
+        status: 'todo',
+        color: priorityColors[priority]
+    };
+
+    tasks.push(newTask);
+    renderTasks();
+    closeUpdateModal();
+}
+// Update your renderTasks logic to use these new properties
+renderTasks = function () {
+    const containers = { todo: document.getElementById('todo-list'), inprogress: document.getElementById('progress-list'), done: document.getElementById('done-list') };
+    Object.values(containers).forEach(c => { if (c) c.innerHTML = ''; });
+    tasks.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'card jira-card';
+        card.style.borderLeft = `6px solid ${task.color}`;
+        
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <i class="fas ${task.icon || 'fa-tasks'}" style="color:${task.color}; font-size:1.2rem;"></i>
+                <span class="priority-badge" style="background:${task.color}20; color:${task.color}">${task.priority || 'Medium'}</span>
+            </div>
+            <div onclick="editTask(${task.id})" style="cursor:pointer; margin-top:10px;">
+                <h4 style="margin:0; color:#1e293b;">${task.title}</h4>
+                <div style="font-size:0.85rem; color:#64748b; margin-top:8px; max-height:60px; overflow:hidden;">${task.subtitle}</div>
+            </div>
+            <div class="card-tools" style="margin-top:15px; border-top:1px solid #f1f5f9; padding-top:10px;">
+                <i class="fas fa-arrow-right" onclick="moveTask(${task.id})"></i>
+                <i class="far fa-trash-alt" onclick="deleteTask(${task.id})"></i>
+            </div>`;
+        if (containers[task.status]) containers[task.status].appendChild(card);
+    });
+    localStorage.setItem('teamSpaceSprint', JSON.stringify(tasks));
+};
+function updateDashboardStats() {
+    const todoCount = tasks.filter(t => t.status === 'todo').length;
+    const progressCount = tasks.filter(t => t.status === 'inprogress').length;
+    const doneCount = tasks.filter(t => t.status === 'done').length;
+
+    const statsHTML = `
+        <div class="stats-row">
+            <div class="stat-card stat-blue">
+                <i class="fas fa-list-ul fa-2x"></i>
+                <div><h3>${todoCount}</h3><p>Backlog Tasks</p></div>
+            </div>
+            <div class="stat-card stat-orange">
+                <i class="fas fa-spinner fa-2x"></i>
+                <div><h3>${progressCount}</h3><p>In Progress</p></div>
+            </div>
+            <div class="stat-card stat-purple">
+                <i class="fas fa-check-circle fa-2x"></i>
+                <div><h3>${doneCount}</h3><p>Completed</p></div>
+            </div>
+        </div>
+    `;
+    // Inject stats row at the top of the main content
+    const main = document.querySelector('main');
+    const existingStats = document.querySelector('.stats-row');
+    if (existingStats) existingStats.remove();
+    main.insertAdjacentHTML('afterbegin', statsHTML);
+}
+
+// Call this inside your existing renderTasks() function
+const finalRender = renderTasks;
+renderTasks = function() {
+    finalRender();
+    updateDashboardStats(); // Refresh stats whenever tasks change
+}
+// --- CUTE STICKER LOGIC ---
+let stickers = JSON.parse(localStorage.getItem('teamSpaceStickers')) || [
+    { id: 1, text: "Don't forget coffee! ☕️", color: 'note-yellow' },
+    { id: 2, text: "Team meeting at 2pm 🦄", color: 'note-pink' }
+];
+function renderStickers() {
+    const wall = document.getElementById('sticky-wall');
+    if (!wall) return;
+    
+    wall.innerHTML = '';
+    stickers.forEach(sticker => {
+        const div = document.createElement('div');
+        div.className = `sticky-note ${sticker.color}`;
+        div.innerHTML = `
+            <span class="delete-sticker" onclick="deleteSticker(${sticker.id})">✖️</span>
+            <div contenteditable="true" onblur="updateStickerText(${sticker.id}, this.innerText)" style="outline:none; height:100%;">
+                ${sticker.text}
+            </div>
+        `;
+        wall.appendChild(div);
+    });
+    localStorage.setItem('teamSpaceStickers', JSON.stringify(stickers));
+}
+function addNewSticker() {
+    const colors = ['note-yellow', 'note-pink', 'note-blue', 'note-green'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const newSticker = {
+        id: Date.now(),
+        text: "New note...",
+        color: randomColor
+    };
+    
+    stickers.push(newSticker);
+    renderStickers();
+}
+function updateStickerText(id, newText) {
+    const sticker = stickers.find(s => s.id === id);
+    if (sticker) {
+        sticker.text = newText;
+        localStorage.setItem('teamSpaceStickers', JSON.stringify(stickers));
+    }
+}
+function deleteSticker(id) {
+    stickers = stickers.filter(s => s.id !== id);
+    renderStickers();
+}
+// Initialize stickers on load
+document.addEventListener('DOMContentLoaded', renderStickers);
 
 
 
