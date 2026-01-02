@@ -5,7 +5,6 @@ body {
     margin: 0;
 }
 
-<<<<<<< HEAD
     :root {
         --bg-light: #f8fafc;
         --sidebar-bg: #ffffff;
@@ -24,7 +23,6 @@ body {
         --cal-green: #84cc16;
         --cal-red: #ef4444;
         }
-=======
 :root {
     --bg-light: #f8fafc;
     --sidebar-bg: #ffffff;
@@ -44,7 +42,6 @@ body {
     --cal-red: #ef4444;
 }
 
->>>>>>> 7107047c57af53a276f8bd4569f9832d8bcd7c79
 /* Jira Style Layout */
 .jira-card {
     background: #ffffff;
