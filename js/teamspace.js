@@ -658,82 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- JIRA-STYLE TASK LOGIC ---
 
-// 1. Capture the "New Update" button click
-document.addEventListener('click', function (e) {
-    const btn = e.target.closest('button');
-    if (btn && btn.textContent.includes('New Update')) {
-        // Open the existing member modal or a simple prompt to get the title
-        const title = prompt("Enter Task Title (Main Heading):");
-        const sub = prompt("Enter Sub-title (Details):");
-
-        if (title) {
-            const newTask = {
-                id: Date.now(),
-                title: title,
-                subtitle: sub || '',
-                assignee: "Unassigned",
-                status: 'todo',
-                color: '#0ea5e9' // Default Jira Blue
-            };
-            tasks.push(newTask);
-            renderTasks();
-        }
-    }
-});
-
-// 2. Add Editing Functionality (Like Jira)
-function editTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-
-    const newTitle = prompt("Edit Title:", task.title);
-    const newSub = prompt("Edit Sub-title:", task.subtitle || "");
-
-    if (newTitle !== null) {
-        task.title = newTitle;
-        task.subtitle = newSub;
-        renderTasks();
-    }
-}
-
-// 3. Update the Render function to show Title + Subtitle + Colors
-// We override your existing renderTasks to make it "Amazing"
-const originalRender = renderTasks;
-renderTasks = function () {
-    const containers = {
-        todo: document.getElementById('todo-list'),
-        inprogress: document.getElementById('progress-list'),
-        done: document.getElementById('done-list')
-    };
-
-    Object.values(containers).forEach(c => { if (c) c.innerHTML = ''; });
-
-    tasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = 'card jira-card';
-        card.style.borderLeft = `5px solid ${task.color || '#0ea5e9'}`;
-        card.innerHTML = `
-            <div onclick="editTask(${task.id})" style="cursor:pointer">
-                <h4 style="margin:0; color:#1e293b; font-size:1.1rem;">${task.title}</h4>
-                <p style="margin:5px 0; font-size:0.85rem; color:#64748b;">${task.subtitle || ''}</p>
-            </div>
-            <div class="assigned" style="font-size:0.7rem; margin-top:10px;">
-                <i class="fas fa-user"></i> ${task.assignee}
-            </div>
-            <div class="card-tools">
-                <i class="fas fa-edit" onclick="editTask(${task.id})" title="Edit"></i>
-                <i class="fas fa-arrow-right" onclick="moveTask(${task.id})" title="Move Next"></i>
-                <i class="far fa-trash-alt" onclick="deleteTask(${task.id})" title="Delete"></i>
-            </div>`;
-        if (containers[task.status]) containers[task.status].appendChild(card);
-    });
-
-    // Update counts
-    if (document.getElementById('todo-count')) document.getElementById('todo-count').innerText = tasks.filter(t => t.status === 'todo').length;
-    if (document.getElementById('progress-count')) document.getElementById('progress-count').innerText = tasks.filter(t => t.status === 'inprogress').length;
-
-    localStorage.setItem('teamSpaceSprint', JSON.stringify(tasks));
-};
 
 // Initial run
 renderTasks();
@@ -1272,6 +1196,21 @@ function openNote(type, date = null) {
     // 5. Show the modal
     document.getElementById('noteModal').style.display = 'flex';
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
