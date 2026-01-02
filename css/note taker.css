@@ -1,4 +1,7 @@
- * {
+/* ================ COMPLETE CSS FILE ================ */
+/* All original code + All new enhancements */
+
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -88,7 +91,7 @@ body {
     border: 2px solid transparent;
 }
 .menu-item:hover {
-    background-color: rgba(74, 111, 165, 0.08);
+    background-color: rgba(255, 255, 255, 0.08);
     transform: translateX(5px);
     border-color: rgba(74, 111, 165, 0.2);
 }
@@ -283,7 +286,7 @@ body {
 }
 .quick-action-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(239, 5, 5, 0.1);
     border-color: var(--primary-color);
 }
 .quick-action-btn.active {
@@ -390,26 +393,7 @@ body {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
 }
 /* Glassmorphism Effect */
-.note-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    border-radius: var(--border-radius);
-    z-index: -1;
-}
-/* Enhanced Hover Effects */
-.note-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(74, 111, 165, 0.1),
-        inset 0 0 30px rgba(255, 255, 255, 0.5);
-    border-color: rgba(74, 111, 165, 0.3);
-}
+
 /* Gradient Border Effect on Hover */
 .note-card:hover::after {
     content: '';
@@ -544,7 +528,7 @@ body {
 }
 .tag:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(74, 111, 165, 0.2);
+    box-shadow: 0 4px 12px rgba(74, 110, 165, 0.584);
     background: linear-gradient(135deg, rgba(74, 111, 165, 0.25), rgba(74, 111, 165, 0.15));
 }
 .tag:hover::before {
@@ -695,7 +679,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 2px 8px rgba(74, 111, 165, 0.3);
+    box-shadow: 0 2px 8px rgba(142, 24, 16, 0.3);
 }
 .note-date span {
     font-size: 11px;
@@ -736,7 +720,7 @@ body {
     font-weight: 700;
     margin-top: 25px;
     transition: var(--transition);
-    box-shadow: 0 6px 20px rgba(74, 111, 165, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 99, 249, 0.3);
 }
 .notes-grid > div[style*="grid-column"] .btn-primary:hover {
     transform: translateY(-3px) scale(1.05);
@@ -901,7 +885,7 @@ body {
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+    box-shadow: 0 0 0 3px rgba(48, 75, 116, 0.1);
 }
 textarea.form-control {
     min-height: 180px;
@@ -1386,4 +1370,687 @@ body.dark-theme .notes-grid > div[style*="grid-column"] {
 }
 body.dark-theme .notes-grid > div[style*="grid-column"]::before {
     background: linear-gradient(135deg, rgba(74, 111, 165, 0.1), rgba(255, 126, 95, 0.1));
+}
+
+/* ================ PREMIUM CARD ENHANCEMENTS ================ */
+/* All new effects - added to existing code */
+
+/* 3D Card Enhancement */
+.note-card {
+    position: relative;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transform: translateZ(0);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    overflow: visible !important;
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+}
+
+/* Premium Glow Border */
+.note-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        rgba(124, 241, 81, 0.2) 0%,
+        rgba(255, 255, 255, 0.6) 25%,
+        rgba(124, 241, 81, 0.2) 50%,
+        rgba(255, 255, 255, 0.6) 75%,
+        rgba(124, 241, 81, 0.2) 100%
+    );
+    border-radius: calc(var(--border-radius) + 4px);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: premiumGlow 3s linear infinite;
+    background-size: 400% 400%;
+}
+
+@keyframes premiumGlow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 400% 50%; }
+}
+
+/* Enhanced Hover Effects */
+.note-card:hover {
+    transform: 
+        translateY(-20px) 
+        rotateX(8deg) 
+        rotateY(2deg) 
+        scale(1.05);
+    z-index: 1000 !important;
+    box-shadow: 
+        0 40px 80px rgba(0, 0, 0, 0.07),
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        inset 0 0 60px rgba(255, 255, 255, 0.089),
+}
+
+.note-card:hover::before {
+    opacity: 1;
+}
+
+/* Interactive Mouse Effects */
+.note-card {
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+    cursor: pointer;
+}
+
+.note-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(
+            circle at var(--mouse-x) var(--mouse-y),
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 60%
+        );
+    border-radius: var(--border-radius);
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    mix-blend-mode: overlay;
+}
+
+.note-card:hover::after {
+    opacity: 1;
+}
+
+/* Enhanced Title Effects */
+.note-title {
+    position: relative;
+    display: inline-block;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.note-card:hover .note-title {
+    transform: translateX(10px);
+    background-size: 200% 200%;
+    background-position: 100% 50%;
+    text-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        0 0 20px rgba(124, 241, 81, 0.4);
+    animation: titleGlowEffect 2s ease-in-out infinite;
+}
+
+@keyframes titleGlowEffect {
+    0%, 100% { 
+        text-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.2),
+            0 0 15px rgba(124, 241, 81, 0.3);
+    }
+    50% { 
+        text-shadow: 
+            0 4px 16px rgba(0, 0, 0, 0.3),
+            0 0 25px rgba(124, 241, 81, 0.6);
+    }
+}
+
+/* Enhanced Date Badge */
+.note-card:hover .note-date {
+    transform: translateX(12px) scale(1.1);
+    background: linear-gradient(135deg, 
+        rgba(74, 111, 165, 0.3), 
+        rgba(74, 111, 165, 0.2)
+    );
+    border-color: rgba(74, 111, 165, 0.5);
+    box-shadow: 
+        0 6px 20px rgba(74, 111, 165, 0.3),
+        0 0 15px rgba(255, 255, 255, 0.3) inset;
+}
+
+/* Premium Priority Badges */
+.note-date span[style*="color: #dc3545"] {
+    animation: premiumPriorityPulse 1.5s ease-in-out infinite;
+    box-shadow: 
+        0 4px 20px rgba(220, 53, 69, 0.5),
+        0 0 15px rgba(220, 53, 69, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.note-date span[style*="color: #ffc107"] {
+    animation: premiumMediumGlow 2s ease-in-out infinite;
+    box-shadow: 
+        0 4px 18px rgba(255, 193, 7, 0.4),
+        0 0 12px rgba(255, 193, 7, 0.2);
+}
+
+.note-date span[style*="color: #28a745"] {
+    animation: premiumLowShimmer 2.5s ease-in-out infinite;
+    box-shadow: 
+        0 4px 16px rgba(40, 167, 69, 0.3),
+        0 0 10px rgba(40, 167, 69, 0.2);
+}
+
+@keyframes premiumPriorityPulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 4px 20px rgba(220, 53, 69, 0.5),
+            0 0 15px rgba(220, 53, 69, 0.3);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 
+            0 6px 30px rgba(220, 53, 69, 0.7),
+            0 0 25px rgba(220, 53, 69, 0.5);
+    }
+}
+
+/* Enhanced Content Reveal */
+.note-card:hover .note-content {
+    transform: translateY(-5px);
+    max-height: 220px !important;
+    line-height: 1.8;
+    padding-right: 15px;
+}
+
+.note-card:hover .note-content:after {
+    background: linear-gradient(to bottom, 
+        transparent, 
+        rgba(255, 255, 255, 0)
+    );
+    height: 60px;
+}
+
+/* Premium Tags */
+.note-card:hover .tag {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 
+        0 8px 25px rgba(74, 111, 165, 0.4),
+        0 0 10px rgba(255, 255, 255, 0.3) inset;
+    background: linear-gradient(135deg, 
+        rgba(74, 111, 165, 0.3), 
+        rgba(74, 111, 165, 0.2)
+    );
+    z-index: 2;
+}
+
+.tag:hover {
+    transform: translateY(-8px) scale(1.15) !important;
+    box-shadow: 
+        0 12px 35px rgba(74, 111, 165, 0.6),
+        0 0 15px rgba(255, 255, 255, 0.5) inset !important;
+    z-index: 10 !important;
+}
+
+/* Premium Action Buttons */
+.action-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(
+        circle, 
+        rgba(255, 255, 255, 0.9) 0%, 
+        rgba(255, 255, 255, 0) 70%
+    );
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+
+.action-btn:hover::before {
+    width: 180px;
+    height: 180px;
+}
+
+.action-btn:hover {
+    transform: 
+        translateY(-8px) 
+        scale(1.2) 
+        rotate(8deg);
+    box-shadow: 
+        0 12px 40px rgba(74, 111, 165, 0.5),
+        0 0 25px rgba(255, 255, 255, 0.6) inset,
+        0 0 15px rgba(124, 241, 81, 0.4);
+    border-color: transparent !important;
+}
+
+.action-btn i {
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover i {
+    transform: scale(1.3) rotate(360deg);
+}
+
+/* Premium Folder Badge */
+.note-card:hover .note-header > div:last-child {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 
+        0 8px 30px rgba(74, 111, 165, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.4) inset;
+    animation: premiumFolderFloat 1.5s ease-in-out infinite;
+}
+
+@keyframes premiumFolderFloat {
+    0%, 100% { transform: scale(1.15) rotate(5deg); }
+    50% { transform: scale(1.2) rotate(0deg); }
+}
+
+/* Premium Pinned Effect */
+.note-card.pinned {
+    animation: premiumPinnedFloat 3s ease-in-out infinite;
+    position: relative;
+}
+
+@keyframes premiumPinnedFloat {
+    0%, 100% { 
+        transform: translateY(0) rotate(-1deg); 
+    }
+    25% { 
+        transform: translateY(-12px) rotate(0deg); 
+    }
+    50% { 
+        transform: translateY(-15px) rotate(1deg); 
+    }
+    75% { 
+        transform: translateY(-8px) rotate(-1deg); 
+    }
+}
+
+.note-card.pinned::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, 
+        rgba(124, 241, 81, 1), 
+        rgba(65, 245, 35, 1)
+    );
+    border-radius: 50%;
+    box-shadow: 
+        0 8px 35px rgba(124, 241, 81, 0.6),
+        0 0 20px rgba(124, 241, 81, 0.4),
+        inset 0 2px 10px rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: premiumPinSpin 3s linear infinite;
+}
+
+.note-card.pinned::after {
+    content: '\f08d';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 11;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes premiumPinSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Premium Important Effect */
+.note-card.important {
+    animation: premiumImportantFloat 2s ease-in-out infinite;
+    position: relative;
+    border: 3px solid transparent;
+    background: 
+        linear-gradient(white, white) padding-box,
+        linear-gradient(135deg, #ff6b6b, #ff8e53, #ff6b6b) border-box;
+    background-size: 200% 200%;
+    animation: premiumBorderShine 3s linear infinite;
+}
+
+@keyframes premiumImportantFloat {
+    0%, 100% { 
+        transform: translateY(0); 
+    }
+    50% { 
+        transform: translateY(-10px); 
+    }
+}
+
+@keyframes premiumBorderShine {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.note-card.important::before {
+    content: '⭐';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 
+        0 8px 40px rgba(255, 107, 107, 0.8),
+        0 0 25px rgba(255, 255, 255, 0.9) inset,
+        0 0 15px rgba(255, 107, 107, 0.5);
+    border: 4px solid white;
+    z-index: 10;
+    animation: premiumStarPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes premiumStarPulse {
+    0%, 100% { 
+        transform: translateX(-50%) scale(1);
+        box-shadow: 
+            0 8px 40px rgba(255, 107, 107, 0.8),
+            0 0 25px rgba(255, 255, 255, 0.9) inset;
+    }
+    50% { 
+        transform: translateX(-50%) scale(1.3);
+        box-shadow: 
+            0 12px 50px rgba(255, 107, 107, 1),
+            0 0 35px rgba(255, 255, 255, 1) inset,
+            0 0 25px rgba(255, 107, 107, 0.8);
+    }
+}
+
+/* Premium Archived Effect */
+.note-card.archived {
+    position: relative;
+    animation: premiumArchiveGlow 3s ease-in-out infinite;
+    filter: grayscale(0.3);
+    opacity: 0.9;
+    transform-style: preserve-3d;
+}
+
+@keyframes premiumArchiveGlow {
+    0%, 100% { 
+        filter: grayscale(0.3) brightness(1);
+        transform: rotateX(1deg);
+    }
+    50% { 
+        filter: grayscale(0.1) brightness(1.1);
+        transform: rotateX(-1deg);
+    }
+}
+
+.note-card.archived::after {
+    content: '📦 ARCHIVED';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, 
+        rgba(108, 117, 125, 0.9), 
+        rgba(73, 80, 87, 0.9)
+    );
+    color: white;
+    padding: 10px 25px;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    border-radius: 25px;
+    box-shadow: 
+        0 8px 35px rgba(0, 0, 0, 0.4),
+        0 0 15px rgba(255, 255, 255, 0.2) inset,
+        0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    animation: premiumArchiveWiggle 3s ease-in-out infinite;
+    backdrop-filter: blur(10px);
+}
+
+@keyframes premiumArchiveWiggle {
+    0%, 100% { 
+        transform: rotate(0deg) scale(1);
+    }
+    25% { 
+        transform: rotate(-3deg) scale(1.05);
+    }
+    75% { 
+        transform: rotate(3deg) scale(1.05);
+    }
+}
+
+/* Premium Entrance Animation */
+@keyframes premiumCardEntrance {
+    0% {
+        opacity: 0;
+        transform: 
+            translateY(60px) 
+            rotateX(-20deg) 
+            scale(0.85);
+        filter: blur(20px);
+    }
+    60% {
+        opacity: 0.9;
+        transform: 
+            translateY(-15px) 
+            rotateX(10deg) 
+            scale(1.08);
+        filter: blur(0);
+    }
+    80% {
+        opacity: 1;
+        transform: 
+            translateY(5px) 
+            rotateX(-2deg) 
+            scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: 
+            translateY(0) 
+            rotateX(0) 
+            scale(1);
+        filter: blur(0);
+    }
+}
+
+.note-card {
+    animation: premiumCardEntrance 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+/* Staggered Entrance */
+.note-card:nth-child(1) { animation-delay: 0.05s; }
+.note-card:nth-child(2) { animation-delay: 0.1s; }
+.note-card:nth-child(3) { animation-delay: 0.15s; }
+.note-card:nth-child(4) { animation-delay: 0.2s; }
+.note-card:nth-child(5) { animation-delay: 0.25s; }
+.note-card:nth-child(6) { animation-delay: 0.3s; }
+.note-card:nth-child(7) { animation-delay: 0.35s; }
+.note-card:nth-child(8) { animation-delay: 0.4s; }
+.note-card:nth-child(9) { animation-delay: 0.45s; }
+.note-card:nth-child(10) { animation-delay: 0.5s; }
+.note-card:nth-child(11) { animation-delay: 0.55s; }
+.note-card:nth-child(n+12) { animation-delay: 0.6s; }
+
+/* Color-Specific Enhancements */
+.note-card[style*="background-color: #ffebee"] {
+    --accent-color: rgba(255, 107, 107, 0.8);
+}
+.note-card[style*="background-color: #f3e5f5"] {
+    --accent-color: rgba(186, 104, 200, 0.8);
+}
+.note-card[style*="background-color: #e8eaf6"] {
+    --accent-color: rgba(92, 107, 192, 0.8);
+}
+.note-card[style*="background-color: #e1f5fe"] {
+    --accent-color: rgba(3, 169, 244, 0.8);
+}
+.note-card[style*="background-color: #e8f5e8"] {
+    --accent-color: rgba(102, 187, 106, 0.8);
+}
+.note-card[style*="background-color: #fff3cd"] {
+    --accent-color: rgba(255, 193, 7, 0.8);
+}
+
+/* Apply color-specific effects */
+.note-card[style*="background-color: #ffebee"]:hover {
+    box-shadow: 
+        0 40px 80px rgba(255, 107, 107, 0.2),
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        0 0 80px rgba(255, 107, 107, 0.3);
+}
+.note-card[style*="background-color: #f3e5f5"]:hover {
+    box-shadow: 
+        0 40px 80px rgba(186, 104, 200, 0.2),
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        0 0 80px rgba(186, 104, 200, 0.3);
+}
+
+/* Dark Theme Premium Enhancements */
+body.dark-theme .note-card:hover {
+    box-shadow: 
+        0 40px 80px rgba(0, 0, 0, 0.5),
+        0 0 0 2px rgba(255, 255, 255, 0.1),
+        0 0 80px rgba(74, 111, 165, 0.4),
+        inset 0 0 60px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .note-card::after {
+    background: 
+        radial-gradient(
+            circle at var(--mouse-x) var(--mouse-y),
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(255, 255, 255, 0.15) 25%,
+            transparent 60%
+        );
+}
+
+/* Responsive Premium Design */
+@media (max-width: 1024px) {
+    .note-card:hover {
+        transform: translateY(-15px) scale(1.03);
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-5px) scale(1.15);
+    }
+}
+
+@media (max-width: 768px) {
+    .note-card:hover {
+        transform: translateY(-10px) scale(1.02);
+    }
+    
+    .note-card:hover .note-content {
+        max-height: 180px !important;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-3px) scale(1.1);
+    }
+    
+    .note-card.pinned,
+    .note-card.important {
+        animation: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .note-card {
+        animation: premiumCardEntrance 0.6s ease both;
+    }
+    
+    .note-card:hover {
+        transform: translateY(-8px) scale(1.01);
+    }
+    
+    .note-card:hover .note-content {
+        max-height: 150px !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .note-card {
+        animation: none !important;
+        transform: none !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        break-inside: avoid;
+    }
+    
+    .note-card:hover {
+        transform: none !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .note-card::before,
+    .note-card::after {
+        display: none !important;
+    }
+    
+    .note-actions {
+        display: none;
+    }
+}
+
+/* No Notes State Enhancement */
+.notes-grid > div[style*="grid-column"] {
+    animation: premiumNoNotesEntrance 0.8s ease both;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes premiumNoNotesEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notes-grid > div[style*="grid-column"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(124, 241, 81, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(74, 111, 165, 0.1) 0%, transparent 50%);
+    z-index: -1;
+}
+
+.notes-grid > div[style*="grid-column"] .btn-primary:hover {
+    transform: translateY(-5px) scale(1.08);
+    box-shadow: 
+        0 12px 40px rgba(74, 111, 165, 0.5),
+        0 0 20px rgba(124, 241, 81, 0.3);
 }
