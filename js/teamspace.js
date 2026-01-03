@@ -1420,6 +1420,54 @@ function getTotalDeletedCount() {
     // 2. Return the count
     return trash.length;
 }
+function getDateNote(type, date) {
+    const dateNotes = JSON.parse(localStorage.getItem('teamSpaceDateNotes')) || {};
+    return dateNotes?.[date]?.[type] || '';
+}
+
+function saveDateNote(type, date, content) {
+    const dateNotes = JSON.parse(localStorage.getItem('teamSpaceDateNotes')) || {};
+    if (!dateNotes[date]) dateNotes[date] = {};
+    dateNotes[date][type] = content;
+    localStorage.setItem('teamSpaceDateNotes', JSON.stringify(dateNotes));
+}
+function autoSaveNote() {
+    if (!currentNoteType) return;
+
+    const editor = document.getElementById('noteEditor');
+    if (!editor) return;
+
+    const content = editor.innerHTML;
+
+    // If date note is open → save as date note
+    const header = document.getElementById('noteType')?.innerText || '';
+    const match = header.match(/\d{4}-\d{2}-\d{2}/);
+
+    if (match) {
+        saveDateNote(currentNoteType, match[0], content);
+    } else {
+        notes[currentNoteType] = content;
+        localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+    }
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const editor = document.getElementById('noteEditor');
+    if (!editor) return;
+
+    editor.addEventListener('input', () => {
+        autoSaveNote();
+    });
+});
+const originalCloseNote = closeNote;
+closeNote = function () {
+    autoSaveNote();
+    originalCloseNote();
+};
+
+
+
+
+
 
 
 
