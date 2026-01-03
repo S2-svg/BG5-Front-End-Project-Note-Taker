@@ -101,7 +101,36 @@ body::before {
   z-index: -1;
   pointer-events: none;
 }
+/* Export Dialog Styles */
+.export-option {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    width: 100%;
+}
 
+.export-option:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.export-option i {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+}
 .sidebar::-webkit-scrollbar {
   width: 6px;
 }
