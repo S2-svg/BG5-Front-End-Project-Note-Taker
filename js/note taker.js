@@ -1219,7 +1219,9 @@ function setupEventListeners() {
     });
     
     // Import/Export
-    exportBtn.addEventListener('click', exportNotes);
+    exportBtn.addEventListener('click', () => {
+        openExportDialog();
+    });
     importBtn.addEventListener('click', () => {
         dropZone.classList.add('active');
         fileInput.click();
@@ -1340,6 +1342,1212 @@ window.setView = function(view) {
         showToast(`View changed to ${view}`, 'info');
     }
 };
+// Enhanced Export Functions - Add these to your existing JavaScript file
+
+// PDF Export Function
+function exportToPDF(type = 'all') {
+    console.log('Starting PDF export');
+    try {
+        // For jsPDF v2+, use destructuring from window.jspdf
+        const { jsPDF } = window.jspdf;
+        console.log('jsPDF loaded:', jsPDF);
+        const doc = new jsPDF();
+        
+        // Set document properties
+        doc.setProperties({
+            title: 'Academic Notes Export',
+            subject: 'Notes Export from Academic Notebook',
+            author: 'Academic Notebook App',
+            keywords: 'notes, academic, export',
+            creator: 'Academic Notebook v1.0'
+        });
+        
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const currentTime = new Date().toLocaleTimeString();
+        
+        let title = '';
+        let contentData = [];
+        
+        // Get data based on type
+        switch(type) {
+            case 'notes':
+                title = 'My Academic Notes';
+                contentData = getNotesForExport();
+                break;
+            case 'important':
+                title = 'Important Notes';
+                contentData = getNotesForExport().filter(note => note.important);
+                break;
+            case 'pinned':
+                title = 'Pinned Notes';
+                contentData = getNotesForExport().filter(note => note.pinned);
+                break;
+            case 'today':
+                title = "Today's Notes";
+                const today = new Date().toDateString();
+                contentData = getNotesForExport().filter(note => {
+                    const noteDate = new Date(note.createdAt).toDateString();
+                    return noteDate === today;
+                });
+                break;
+            case 'current':
+                title = 'Current View Notes';
+                contentData = getFilteredNotes().map(note => ({
+                    ...note,
+                    content: note.content.substring(0, 500) // Limit content for PDF
+                }));
+                break;
+            default: // 'all'
+                title = 'All Academic Notes';
+                contentData = getNotesForExport();
+                break;
+        }
+        
+        // Add header
+        doc.setFontSize(22);
+        doc.setTextColor(16, 158, 110); // Primary color
+        doc.text(title, 105, 20, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated on ${currentDate} at ${currentTime}`, 105, 28, { align: 'center' });
+        
+        // Add summary
+        doc.setFontSize(11);
+        doc.setTextColor(50, 50, 50);
+        doc.text(`Total Notes: ${contentData.length}`, 105, 38, { align: 'center' });
+        
+        doc.line(10, 42, 200, 42);
+        
+        // Add content
+        let yPos = 50;
+        
+        contentData.forEach((note, index) => {
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            // Add section separator
+            if (index > 0) {
+                doc.setDrawColor(200, 200, 200);
+                doc.line(10, yPos - 5, 200, yPos - 5);
+                yPos += 5;
+            }
+            
+            // Note title
+            doc.setFontSize(14);
+            doc.setTextColor(30, 30, 30);
+            doc.setFont(undefined, 'bold');
+            doc.text(note.title, 15, yPos);
+            doc.setFont(undefined, 'normal');
+            yPos += 8;
+            
+            // Note metadata
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            const metaText = [
+                `Created: ${formatExportDate(note.createdAt)}`,
+                `Folder: ${note.folder.replace('-', ' ').toUpperCase()}`,
+                `Priority: ${note.priority.toUpperCase()}`
+            ].join(' | ');
+            doc.text(metaText, 15, yPos);
+            yPos += 6;
+            
+            // Tags
+            if (note.tags && note.tags.length > 0) {
+                const tagsText = `Tags: ${note.tags.join(', ')}`;
+                doc.text(tagsText, 15, yPos);
+                yPos += 6;
+            }
+            
+            // Status indicators
+            const status = [];
+            if (note.pinned) status.push('📌 Pinned');
+            if (note.important) status.push('⭐ Important');
+            if (note.archived) status.push('📦 Archived');
+            
+            if (status.length > 0) {
+                doc.setTextColor(16, 158, 110);
+                doc.text(status.join(' • '), 15, yPos);
+                doc.setTextColor(100, 100, 100);
+                yPos += 6;
+            }
+            
+            // Note content
+            doc.setFontSize(10);
+            doc.setTextColor(30, 30, 30);
+            
+            const contentLines = doc.splitTextToSize(note.content, 180);
+            contentLines.forEach(line => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.text(line, 15, yPos);
+                yPos += 5;
+            });
+            
+            yPos += 10;
+        });
+        
+        // Add footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Page ${i} of ${pageCount}`, 195, 285, { align: 'right' });
+            doc.text('Exported from Academic Notebook', 10, 285);
+        }
+        
+        // Save the PDF
+        const fileName = `academic-notes-${type}-${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        
+        showToast(`Exported ${contentData.length} notes to PDF`, 'success');
+        return true;
+    } catch (error) {
+        console.error('PDF Export Error:', error);
+        showToast('Error exporting to PDF: ' + error.message, 'error');
+        return false;
+    }
+}
+
+// Word Export Function
+function exportToWord(type = 'all') {
+    try {
+        let title = '';
+        let contentData = [];
+        
+        // Get data based on type
+        switch(type) {
+            case 'notes':
+                title = 'My Academic Notes';
+                contentData = getNotesForExport();
+                break;
+            case 'important':
+                title = 'Important Notes';
+                contentData = getNotesForExport().filter(note => note.important);
+                break;
+            case 'pinned':
+                title = 'Pinned Notes';
+                contentData = getNotesForExport().filter(note => note.pinned);
+                break;
+            case 'today':
+                title = "Today's Notes";
+                const today = new Date().toDateString();
+                contentData = getNotesForExport().filter(note => {
+                    const noteDate = new Date(note.createdAt).toDateString();
+                    return noteDate === today;
+                });
+                break;
+            case 'current':
+                title = 'Current View Notes';
+                contentData = getFilteredNotes();
+                break;
+            default: // 'all'
+                title = 'All Academic Notes';
+                contentData = getNotesForExport();
+                break;
+        }
+        
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // Create HTML content for Word document
+        let htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        @page {
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #109e6e;
+        }
+        .header h1 {
+            color: #109e6e;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .header .summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        .note {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-left: 4px solid #109e6e;
+            background: #f8f9fa;
+            border-radius: 8px;
+            page-break-inside: avoid;
+        }
+        .note-title {
+            color: #109e6e;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .note-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .note-meta span {
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .note-tags {
+            font-size: 12px;
+            color: #109e6e;
+            margin-bottom: 10px;
+        }
+        .note-tags .tag {
+            background: #e8f5e9;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+        .note-status {
+            font-size: 12px;
+            color: #ff7e5f;
+            margin-bottom: 10px;
+        }
+        .note-status span {
+            margin-right: 10px;
+        }
+        .note-content {
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        .note-content strong {
+            color: #333;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${title}</h1>
+        <div class="subtitle">Exported from Academic Notebook</div>
+        <div class="subtitle">Generated on ${currentDate}</div>
+        <div class="summary">
+            Total Notes: ${contentData.length} | 
+            Folders: ${[...new Set(contentData.map(n => n.folder.replace('-', ' ').toUpperCase()))].join(', ')}
+        </div>
+    </div>
+`;
+        
+        // Add notes content
+        contentData.forEach((note, index) => {
+            if (index > 0 && index % 5 === 0) {
+                htmlContent += '<div class="page-break"></div>';
+            }
+            
+            const displayDate = formatExportDate(note.createdAt);
+            const folderName = note.folder.replace('-', ' ').toUpperCase();
+            const statusIcons = [];
+            if (note.pinned) statusIcons.push('📌 Pinned');
+            if (note.important) statusIcons.push('⭐ Important');
+            if (note.archived) statusIcons.push('📦 Archived');
+            
+            htmlContent += `
+    <div class="note">
+        <div class="note-title">${escapeHtml(note.title)}</div>
+        <div class="note-meta">
+            <span>📅 ${displayDate}</span>
+            <span>📁 ${folderName}</span>
+            <span>${getPriorityIcon(note.priority)} ${note.priority.toUpperCase()}</span>
+        </div>
+        ${note.tags && note.tags.length > 0 ? `
+        <div class="note-tags">
+            ${note.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+        </div>` : ''}
+        ${statusIcons.length > 0 ? `
+        <div class="note-status">
+            ${statusIcons.map(icon => `<span>${icon}</span>`).join('')}
+        </div>` : ''}
+        <div class="note-content">${formatNoteContentForExport(note.content)}</div>
+    </div>
+`;
+        });
+        
+        // Add footer
+        htmlContent += `
+    <div class="footer">
+        <p>Academic Notebook Export | ${contentData.length} notes exported</p>
+        <p>This document was generated automatically. For more features, visit the Academic Notebook application.</p>
+    </div>
+</body>
+</html>`;
+        
+        // Create and download Word document
+        const blob = new Blob([htmlContent], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const fileName = `academic-notes-${type}-${new Date().toISOString().split('T')[0]}.doc`;
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast(`Exported ${contentData.length} notes to Word document`, 'success');
+        return true;
+    } catch (error) {
+        console.error('Word Export Error:', error);
+        showToast('Error exporting to Word: ' + error.message, 'error');
+        return false;
+    }
+}
+
+// PowerPoint Export Function (requires pptxgenjs library)
+function exportToPowerPoint(type = 'all') {
+    console.log('Starting PowerPoint export');
+    try {
+        // Check if pptxgenjs is available
+        if (typeof PptxGenJS === 'undefined') {
+            console.warn('PptxGenJS library not loaded. PowerPoint export will not work.');
+            showToast('Please include pptxgenjs library for PowerPoint export', 'error');
+            return false;
+        }
+        
+        const pptx = new PptxGenJS();
+        
+        let title = '';
+        let contentData = [];
+        
+        // Get data based on type
+        switch(type) {
+            case 'notes':
+                title = 'My Academic Notes';
+                contentData = getNotesForExport();
+                break;
+            case 'important':
+                title = 'Important Notes';
+                contentData = getNotesForExport().filter(note => note.important);
+                break;
+            case 'pinned':
+                title = 'Pinned Notes';
+                contentData = getNotesForExport().filter(note => note.pinned);
+                break;
+            case 'today':
+                title = "Today's Notes";
+                const today = new Date().toDateString();
+                contentData = getNotesForExport().filter(note => {
+                    const noteDate = new Date(note.createdAt).toDateString();
+                    return noteDate === today;
+                });
+                break;
+            case 'current':
+                title = 'Current View Notes';
+                contentData = getFilteredNotes();
+                break;
+            default: // 'all'
+                title = 'All Academic Notes';
+                contentData = getNotesForExport();
+                break;
+        }
+        
+        // Presentation properties
+        pptx.title = title;
+        pptx.subject = 'Academic Notes Export';
+        pptx.author = 'Academic Notebook';
+        pptx.company = 'Academic Notebook App';
+        
+        // Title slide
+        let slide = pptx.addSlide();
+        slide.background = { color: '109E6E' }; // Primary color
+        
+        slide.addText(title, {
+            x: 0.5,
+            y: 1.5,
+            w: '90%',
+            h: 1.5,
+            fontSize: 44,
+            bold: true,
+            color: 'FFFFFF',
+            align: 'center'
+        });
+        
+        slide.addText('Exported from Academic Notebook', {
+            x: 0.5,
+            y: 3.5,
+            w: '90%',
+            fontSize: 18,
+            color: 'FFFFFF',
+            align: 'center'
+        });
+        
+        slide.addText(`Total Notes: ${contentData.length}`, {
+            x: 0.5,
+            y: 4.5,
+            w: '90%',
+            fontSize: 14,
+            color: 'FFFFFF',
+            align: 'center'
+        });
+        
+        slide.addText(new Date().toLocaleDateString(), {
+            x: 0.5,
+            y: 5,
+            w: '90%',
+            fontSize: 12,
+            color: 'FFFFFF',
+            align: 'center'
+        });
+        
+        // Summary slide
+        slide = pptx.addSlide();
+        slide.addText('Summary', {
+            x: 0.5,
+            y: 0.5,
+            w: '90%',
+            fontSize: 36,
+            bold: true,
+            color: '109E6E'
+        });
+        
+        const folders = [...new Set(contentData.map(n => n.folder))];
+        const importantCount = contentData.filter(n => n.important).length;
+        const pinnedCount = contentData.filter(n => n.pinned).length;
+        const todayCount = contentData.filter(n => {
+            const noteDate = new Date(n.createdAt).toDateString();
+            return noteDate === new Date().toDateString();
+        }).length;
+        
+        slide.addText(
+            `• Total Notes: ${contentData.length}\n` +
+            `• Important Notes: ${importantCount}\n` +
+            `• Pinned Notes: ${pinnedCount}\n` +
+            `• Today's Notes: ${todayCount}\n` +
+            `• Folders: ${folders.length}\n` +
+            `• Export Date: ${new Date().toLocaleDateString()}`,
+            {
+                x: 1,
+                y: 1.5,
+                w: '85%',
+                fontSize: 18,
+                lineSpacing: 28
+            }
+        );
+        
+        // Notes slides
+        contentData.forEach((note, index) => {
+            slide = pptx.addSlide();
+            
+            // Note title
+            slide.addText(note.title, {
+                x: 0.5,
+                y: 0.5,
+                w: '90%',
+                fontSize: 24,
+                bold: true,
+                color: '109E6E'
+            });
+            
+            // Note metadata
+            const metaText = [
+                `📅 ${formatExportDate(note.createdAt)}`,
+                `📁 ${note.folder.replace('-', ' ').toUpperCase()}`,
+                `${getPriorityIcon(note.priority)} ${note.priority.toUpperCase()}`
+            ].join('  •  ');
+            
+            slide.addText(metaText, {
+                x: 0.5,
+                y: 1.2,
+                w: '90%',
+                fontSize: 12,
+                color: '666666'
+            });
+            
+            // Status icons
+            let statusText = '';
+            if (note.pinned) statusText += '📌 ';
+            if (note.important) statusText += '⭐ ';
+            if (note.archived) statusText += '📦 ';
+            
+            if (statusText) {
+                slide.addText(statusText.trim(), {
+                    x: 0.5,
+                    y: 1.6,
+                    fontSize: 14,
+                    color: 'FF7E5F'
+                });
+            }
+            
+            // Tags
+            if (note.tags && note.tags.length > 0) {
+                slide.addText(`🏷️ ${note.tags.join(', ')}`, {
+                    x: 0.5,
+                    y: 1.9,
+                    w: '90%',
+                    fontSize: 11,
+                    color: '888888'
+                });
+            }
+            
+            // Note content (limited)
+            const contentPreview = note.content.length > 800 
+                ? note.content.substring(0, 800) + '...' 
+                : note.content;
+            
+            slide.addText(contentPreview, {
+                x: 0.5,
+                y: 2.5,
+                w: '90%',
+                h: 4,
+                fontSize: 14,
+                lineSpacing: 21
+            });
+            
+            // Slide number
+            slide.addText(`Note ${index + 1} of ${contentData.length}`, {
+                x: '90%',
+                y: '95%',
+                w: '10%',
+                fontSize: 10,
+                color: '999999',
+                align: 'right'
+            });
+        });
+        
+        // Export slideshow
+        const fileName = `academic-notes-${type}-${new Date().toISOString().split('T')[0]}.pptx`;
+        pptx.writeFile({ fileName: fileName });
+        
+        showToast(`Exported ${contentData.length} notes to PowerPoint`, 'success');
+        return true;
+    } catch (error) {
+        console.error('PowerPoint Export Error:', error);
+        showToast('Error exporting to PowerPoint: ' + error.message, 'error');
+        return false;
+    }
+}
+
+// Helper functions for export
+function getNotesForExport() {
+    return notes.map(note => ({
+        ...note,
+        title: note.title,
+        content: note.content,
+        tags: note.tags || [],
+        folder: note.folder,
+        priority: note.priority || 'medium',
+        pinned: note.pinned || false,
+        important: note.important || false,
+        archived: note.archived || false,
+        createdAt: note.createdAt || new Date().toISOString(),
+        color: note.color || 'white'
+    }));
+}
+
+function formatExportDate(dateString) {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatNoteContentForExport(content) {
+    return escapeHtml(content)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>')
+        .replace(/•\s*/g, '• ')
+        .replace(/\d+\.\s+/g, (match) => match.replace('.', '. '));
+}
+
+function getPriorityIcon(priority) {
+    const icons = {
+        'high': '🔴',
+        'medium': '🟡',
+        'low': '🟢'
+    };
+    return icons[priority] || '⚪';
+}
+
+// Enhanced Export Dialog
+function openExportDialog() {
+    const dialogHTML = `
+        <div id="exportDialog" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 style="color: #109e6e;"><i class="fas fa-download"></i> Export Notes</h2>
+                    <button class="close-modal" onclick="closeExportDialog()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-filter"></i> Select Content to Export</label>
+                    <div class="export-options">
+                        <div class="export-option-grid">
+                            <button class="export-option" onclick="exportSelected('all')" data-type="all">
+                                <i class="fas fa-book"></i>
+                                <span>All Notes</span>
+                                <small>${notes.length} notes</small>
+                            </button>
+                            <button class="export-option" onclick="exportSelected('important')" data-type="important">
+                                <i class="fas fa-star"></i>
+                                <span>Important Notes</span>
+                                <small>${notes.filter(n => n.important).length} notes</small>
+                            </button>
+                            <button class="export-option" onclick="exportSelected('pinned')" data-type="pinned">
+                                <i class="fas fa-thumbtack"></i>
+                                <span>Pinned Notes</span>
+                                <small>${notes.filter(n => n.pinned).length} notes</small>
+                            </button>
+                            <button class="export-option" onclick="exportSelected('today')" data-type="today">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Today's Notes</span>
+                                <small>${notes.filter(n => {
+                                    const noteDate = new Date(n.createdAt).toDateString();
+                                    return noteDate === new Date().toDateString();
+                                }).length} notes</small>
+                            </button>
+                            <button class="export-option" onclick="exportSelected('current')" data-type="current">
+                                <i class="fas fa-eye"></i>
+                                <span>Current View</span>
+                                <small>${getFilteredNotes().length} notes</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-file-export"></i> Select Export Format</label>
+                    <div class="export-format-options">
+                        <button class="export-format-btn" onclick="exportFormatSelected('pdf')">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>PDF Document</span>
+                            <small>Best for printing</small>
+                        </button>
+                        <button class="export-format-btn" onclick="exportFormatSelected('word')">
+                            <i class="fas fa-file-word"></i>
+                            <span>Word Document</span>
+                            <small>Editable format</small>
+                        </button>
+                        <button class="export-format-btn" onclick="exportFormatSelected('powerpoint')">
+                            <i class="fas fa-file-powerpoint"></i>
+                            <span>PowerPoint</span>
+                            <small>For presentations</small>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="closeExportDialog()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn-primary" onclick="executeExport()" id="executeExportBtn" disabled>
+                        <i class="fas fa-download"></i> Export Now
+                    </button>
+                </div>
+                <div class="export-preview" id="exportPreview">
+                    <p><i class="fas fa-info-circle"></i> Select content and format to preview export</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing dialog if any
+    const existingDialog = document.getElementById('exportDialog');
+    if (existingDialog) existingDialog.remove();
+    
+    // Add dialog to body
+    document.body.insertAdjacentHTML('beforeend', dialogHTML);
+    
+    // Show dialog with animation
+    const dialog = document.getElementById('exportDialog');
+    dialog.style.display = 'flex';
+    
+    setTimeout(() => {
+        dialog.style.opacity = '1';
+        dialog.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Setup event listeners for the dialog
+    setupExportDialogListeners();
+}
+
+let selectedExportType = 'all';
+let selectedExportFormat = null;
+
+function setupExportDialogListeners() {
+    // Type selection
+    document.querySelectorAll('.export-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.export-option').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedExportType = this.dataset.type;
+            updateExportPreview();
+        });
+    });
+    
+    // Format selection
+    document.querySelectorAll('.export-format-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.export-format-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            const format = this.querySelector('i').className.includes('pdf') ? 'pdf' :
+                         this.querySelector('i').className.includes('word') ? 'word' : 'powerpoint';
+            selectedExportFormat = format;
+            updateExportPreview();
+        });
+    });
+}
+
+function exportSelected(type) {
+    selectedExportType = type;
+    updateExportPreview();
+}
+
+function exportFormatSelected(format) {
+    selectedExportFormat = format;
+    updateExportPreview();
+}
+
+function updateExportPreview() {
+    const preview = document.getElementById('exportPreview');
+    const executeBtn = document.getElementById('executeExportBtn');
+    
+    if (!selectedExportFormat) {
+        preview.innerHTML = '<p><i class="fas fa-info-circle"></i> Please select an export format</p>';
+        executeBtn.disabled = true;
+        return;
+    }
+    
+    let contentCount = 0;
+    let contentDescription = '';
+    
+    switch(selectedExportType) {
+        case 'all':
+            contentCount = notes.length;
+            contentDescription = 'All notes from your notebook';
+            break;
+        case 'important':
+            contentCount = notes.filter(n => n.important).length;
+            contentDescription = 'Important notes only';
+            break;
+        case 'pinned':
+            contentCount = notes.filter(n => n.pinned).length;
+            contentDescription = 'Pinned notes';
+            break;
+        case 'today':
+            const today = new Date().toDateString();
+            contentCount = notes.filter(n => {
+                const noteDate = new Date(n.createdAt).toDateString();
+                return noteDate === today;
+            }).length;
+            contentDescription = "Today's notes";
+            break;
+        case 'current':
+            contentCount = getFilteredNotes().length;
+            contentDescription = 'Currently filtered notes';
+            break;
+    }
+    
+    const formatNames = {
+        'pdf': 'PDF Document',
+        'word': 'Word Document',
+        'powerpoint': 'PowerPoint Presentation'
+    };
+    
+    preview.innerHTML = `
+        <div class="export-preview-content">
+            <h4><i class="fas fa-file-export"></i> Export Preview</h4>
+            <div class="preview-details">
+                <div class="preview-item">
+                    <span class="preview-label">Content:</span>
+                    <span class="preview-value">${contentDescription}</span>
+                </div>
+                <div class="preview-item">
+                    <span class="preview-label">Notes Count:</span>
+                    <span class="preview-value">${contentCount} notes</span>
+                </div>
+                <div class="preview-item">
+                    <span class="preview-label">Format:</span>
+                    <span class="preview-value">${formatNames[selectedExportFormat]}</span>
+                </div>
+                <div class="preview-item">
+                    <span class="preview-label">File Size:</span>
+                    <span class="preview-value">Approx. ${Math.round(contentCount * 2)} KB</span>
+                </div>
+            </div>
+            <div class="preview-actions">
+                <button class="btn-small" onclick="showExportTips()">
+                    <i class="fas fa-lightbulb"></i> Export Tips
+                </button>
+            </div>
+        </div>
+    `;
+    
+    executeBtn.disabled = false;
+    executeBtn.innerHTML = `<i class="fas fa-download"></i> Export ${contentCount} Notes as ${formatNames[selectedExportFormat].split(' ')[0]}`;
+}
+
+function executeExport() {
+    if (!selectedExportFormat) {
+        showToast('Please select an export format', 'error');
+        return;
+    }
+    
+    closeExportDialog();
+    
+    // Show loading indicator
+    const loadingToast = document.createElement('div');
+    loadingToast.className = 'toast loading';
+    loadingToast.innerHTML = `
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Preparing export...</span>
+    `;
+    document.body.appendChild(loadingToast);
+    setTimeout(() => loadingToast.classList.add('show'), 10);
+    
+    // Execute export based on format
+    setTimeout(() => {
+        let success = false;
+        
+        switch(selectedExportFormat) {
+            case 'pdf':
+                success = exportToPDF(selectedExportType);
+                break;
+            case 'word':
+                success = exportToWord(selectedExportType);
+                break;
+            case 'powerpoint':
+                success = exportToPowerPoint(selectedExportType);
+                break;
+        }
+        
+        // Remove loading indicator
+        loadingToast.classList.remove('show');
+        setTimeout(() => loadingToast.remove(), 300);
+        
+        if (success) {
+            showToast(`Export completed successfully!`, 'success');
+        }
+    }, 500);
+}
+
+function closeExportDialog() {
+    const dialog = document.getElementById('exportDialog');
+    if (dialog) {
+        dialog.style.opacity = '0';
+        dialog.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            dialog.style.display = 'none';
+            dialog.remove();
+        }, 300);
+    }
+}
+
+function showExportTips() {
+    const tips = `
+        <div class="export-tips">
+            <h4><i class="fas fa-lightbulb"></i> Export Tips</h4>
+            <ul>
+                <li><strong>PDF Export:</strong> Best for printing and sharing. Preserves formatting perfectly.</li>
+                <li><strong>Word Export:</strong> Best for editing and further customization.</li>
+                <li><strong>PowerPoint Export:</strong> Best for presentations and meetings.</li>
+                <li>For large exports, consider exporting by folder or date range.</li>
+                <li>Export important notes separately for quick reference.</li>
+                <li>Use "Current View" to export exactly what you see on screen.</li>
+            </ul>
+        </div>
+    `;
+    
+    const preview = document.getElementById('exportPreview');
+    preview.innerHTML = tips;
+}
+
+// Add CSS for export features
+const exportStyles = document.createElement('style');
+exportStyles.textContent = `
+    /* Export Dialog Styles */
+    .export-options {
+        margin: 15px 0;
+    }
+    
+    .export-option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .export-option {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 15px;
+        color: var(--text-color);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .export-option:hover {
+        background: rgba(16, 158, 110, 0.05);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .export-option.selected {
+        background: rgba(16, 158, 110, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(16, 158, 110, 0.2);
+    }
+    
+    .export-option i {
+        font-size: 24px;
+        color: var(--primary-color);
+    }
+    
+    .export-option span {
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .export-option small {
+        font-size: 11px;
+        color: var(--gray-color);
+        opacity: 0.8;
+    }
+    
+    .export-format-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .export-format-btn {
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 15px;
+        color: var(--text-color);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .export-format-btn:hover {
+        background: rgba(16, 158, 110, 0.05);
+        transform: translateY(-2px);
+    }
+    
+    .export-format-btn.selected {
+        background: rgba(16, 158, 110, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(16, 158, 110, 0.2);
+    }
+    
+    .export-format-btn i {
+        font-size: 28px;
+    }
+    
+    .export-format-btn:nth-child(1) i { color: #d93025; } /* PDF - Red */
+    .export-format-btn:nth-child(2) i { color: #2b579a; } /* Word - Blue */
+    .export-format-btn:nth-child(3) i { color: #d24726; } /* PowerPoint - Orange */
+    
+    .export-preview {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(16, 158, 110, 0.05);
+        border-radius: var(--border-radius);
+        border: 1px solid rgba(16, 158, 110, 0.2);
+    }
+    
+    .export-preview-content h4 {
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .preview-details {
+        display: grid;
+        gap: 10px;
+    }
+    
+    .preview-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .preview-item:last-child {
+        border-bottom: none;
+    }
+    
+    .preview-label {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 13px;
+    }
+    
+    .preview-value {
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 13px;
+    }
+    
+    .preview-actions {
+        margin-top: 15px;
+        text-align: center;
+    }
+    
+    .btn-small {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .btn-small:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .export-tips {
+        background: white;
+        padding: 15px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+    }
+    
+    .export-tips h4 {
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .export-tips ul {
+        padding-left: 20px;
+        margin: 0;
+    }
+    
+    .export-tips li {
+        margin-bottom: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    
+    .export-tips li strong {
+        color: var(--primary-color);
+    }
+    
+    /* Loading toast */
+    .toast.loading {
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    /* Update the export button in header */
+    #exportNotes {
+        position: relative;
+    }
+    
+    #exportNotes:hover::after {
+        content: 'Export to PDF/Word/PPT';
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-top: 5px;
+    }
+`;
+
+document.head.appendChild(exportStyles);
+
+// Replace the existing exportNotes function
+window.exportNotes = function() {
+    openExportDialog();
+};
 
 window.openSettings = function() {
     settingsModal.style.display = 'flex';
@@ -1356,6 +2564,19 @@ window.logout = function() {
 };
 
 window.exportNotes = exportNotes;
+
+// Initialize export functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add library check for PowerPoint
+    if (typeof PptxGenJS === 'undefined') {
+        console.warn('PptxGenJS library not loaded. PowerPoint export will not work.');
+    }
+    
+    // Make sure jsPDF is available
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+        console.warn('jsPDF library not loaded. PDF export will not work.');
+    }
+});
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
