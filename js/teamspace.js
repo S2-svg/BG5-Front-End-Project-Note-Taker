@@ -658,82 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- JIRA-STYLE TASK LOGIC ---
 
-// 1. Capture the "New Update" button click
-document.addEventListener('click', function (e) {
-    const btn = e.target.closest('button');
-    if (btn && btn.textContent.includes('New Update')) {
-        // Open the existing member modal or a simple prompt to get the title
-        const title = prompt("Enter Task Title (Main Heading):");
-        const sub = prompt("Enter Sub-title (Details):");
-
-        if (title) {
-            const newTask = {
-                id: Date.now(),
-                title: title,
-                subtitle: sub || '',
-                assignee: "Unassigned",
-                status: 'todo',
-                color: '#0ea5e9' // Default Jira Blue
-            };
-            tasks.push(newTask);
-            renderTasks();
-        }
-    }
-});
-
-// 2. Add Editing Functionality (Like Jira)
-function editTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-
-    const newTitle = prompt("Edit Title:", task.title);
-    const newSub = prompt("Edit Sub-title:", task.subtitle || "");
-
-    if (newTitle !== null) {
-        task.title = newTitle;
-        task.subtitle = newSub;
-        renderTasks();
-    }
-}
-
-// 3. Update the Render function to show Title + Subtitle + Colors
-// We override your existing renderTasks to make it "Amazing"
-const originalRender = renderTasks;
-renderTasks = function () {
-    const containers = {
-        todo: document.getElementById('todo-list'),
-        inprogress: document.getElementById('progress-list'),
-        done: document.getElementById('done-list')
-    };
-
-    Object.values(containers).forEach(c => { if (c) c.innerHTML = ''; });
-
-    tasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = 'card jira-card';
-        card.style.borderLeft = `5px solid ${task.color || '#0ea5e9'}`;
-        card.innerHTML = `
-            <div onclick="editTask(${task.id})" style="cursor:pointer">
-                <h4 style="margin:0; color:#1e293b; font-size:1.1rem;">${task.title}</h4>
-                <p style="margin:5px 0; font-size:0.85rem; color:#64748b;">${task.subtitle || ''}</p>
-            </div>
-            <div class="assigned" style="font-size:0.7rem; margin-top:10px;">
-                <i class="fas fa-user"></i> ${task.assignee}
-            </div>
-            <div class="card-tools">
-                <i class="fas fa-edit" onclick="editTask(${task.id})" title="Edit"></i>
-                <i class="fas fa-arrow-right" onclick="moveTask(${task.id})" title="Move Next"></i>
-                <i class="far fa-trash-alt" onclick="deleteTask(${task.id})" title="Delete"></i>
-            </div>`;
-        if (containers[task.status]) containers[task.status].appendChild(card);
-    });
-
-    // Update counts
-    if (document.getElementById('todo-count')) document.getElementById('todo-count').innerText = tasks.filter(t => t.status === 'todo').length;
-    if (document.getElementById('progress-count')) document.getElementById('progress-count').innerText = tasks.filter(t => t.status === 'inprogress').length;
-
-    localStorage.setItem('teamSpaceSprint', JSON.stringify(tasks));
-};
 
 // Initial run
 renderTasks();
@@ -1217,7 +1141,6 @@ function openNote(type, date = null) {
                 <span onclick="insertSticker('🔥')" title="Fire" style="cursor:pointer; font-size:1.4rem;">🔥</span>
                 <span onclick="insertSticker('🌈')" title="Rainbow" style="cursor:pointer; font-size:1.4rem;">🌈</span>
                 <span onclick="insertSticker('🍀')" title="Clover" style="cursor:pointer; font-size:1.4rem;">🍀</span>
-                <span onclick="insertSticker('🦋')" title="Butterfly" style="cursor:pointer; font-size:1.4rem;">🦋</span>
                 <span onclick="insertSticker('🧸')" title="Teddy" style="cursor:pointer; font-size:1.4rem;">🧸</span>
                 <span onclick="insertSticker('☕️')" title="Coffee" style="cursor:pointer; font-size:1.4rem;">☕️</span>
                 <span onclick="insertSticker('🍕')" title="Pizza" style="cursor:pointer; font-size:1.4rem;">🍕</span>
@@ -1273,6 +1196,393 @@ function openNote(type, date = null) {
     // 5. Show the modal
     document.getElementById('noteModal').style.display = 'flex';
 }
+// --- NEW RICH UPDATE LOGIC ---
+// Helper for formatting text
+function execCmd(command, value = null) {
+    document.execCommand(command, false, value);
+}
+
+// Override the click listener for "New Update"
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('button');
+    if (btn && btn.textContent.includes('New Update')) {
+        openUpdateModal();
+    }
+});
+
+function openUpdateModal() {
+    document.getElementById('updateTitle').value = '';
+    document.getElementById('richNoteEditor').innerHTML = 'Start writing your update here...';
+    document.getElementById('updateModal').style.display = 'flex';
+}
+
+function closeUpdateModal() {
+    document.getElementById('updateModal').style.display = 'none';
+}
+
+function saveRichUpdate() {
+    const title = document.getElementById('updateTitle').value;
+    const content = document.getElementById('richNoteEditor').innerHTML;
+
+    if (title.trim() === "") {
+        document.getElementById('updateTitle').style.borderColor = "red";
+        return;
+    }
+
+    const newTask = {
+        id: Date.now(),
+        title: title,
+        subtitle: content, // The subtitle now stores the HTML/Rich text
+        assignee: "Unassigned",
+        status: 'todo',
+        color: '#0ea5e9'
+    };
+
+    tasks.push(newTask);
+    renderTasks();
+    closeUpdateModal();
+}
+// Update the moveTask and deleteTask functions if they are missing
+function moveTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (task.status === 'todo') task.status = 'inprogress';
+    else if (task.status === 'inprogress') task.status = 'done';
+    renderTasks();
+}
+
+function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+}
+let selectedIconClass = 'fa-tasks';
+
+function selectIcon(element, iconClass) {
+    document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedIconClass = iconClass;
+}
+
+function saveRichUpdate() {
+    const title = document.getElementById('updateTitle').value;
+    const content = document.getElementById('richNoteEditor').innerHTML;
+    const priority = document.getElementById('taskPriority').value;
+    
+    // Map priority to colors
+    const priorityColors = { 'Low': '#22c55e', 'Medium': '#eab308', 'High': '#ef4444' };
+
+    if (!title.trim()) return; // No alert, just stop
+
+    const newTask = {
+        id: Date.now(),
+        title: title,
+        subtitle: content,
+        priority: priority,
+        icon: selectedIconClass,
+        assignee: "Unassigned",
+        status: 'todo',
+        color: priorityColors[priority]
+    };
+
+    tasks.push(newTask);
+    renderTasks();
+    closeUpdateModal();
+}
+// Update your renderTasks logic to use these new properties
+renderTasks = function () {
+    const containers = { todo: document.getElementById('todo-list'), inprogress: document.getElementById('progress-list'), done: document.getElementById('done-list') };
+    Object.values(containers).forEach(c => { if (c) c.innerHTML = ''; });
+    tasks.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'card jira-card';
+        card.style.borderLeft = `6px solid ${task.color}`;
+        
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <i class="fas ${task.icon || 'fa-tasks'}" style="color:${task.color}; font-size:1.2rem;"></i>
+                <span class="priority-badge" style="background:${task.color}20; color:${task.color}">${task.priority || 'Medium'}</span>
+            </div>
+            <div onclick="editTask(${task.id})" style="cursor:pointer; margin-top:10px;">
+                <h4 style="margin:0; color:#1e293b;">${task.title}</h4>
+                <div style="font-size:0.85rem; color:#64748b; margin-top:8px; max-height:60px; overflow:hidden;">${task.subtitle}</div>
+            </div>
+            <div class="card-tools" style="margin-top:15px; border-top:1px solid #f1f5f9; padding-top:10px;">
+                <i class="fas fa-arrow-right" onclick="moveTask(${task.id})"></i>
+                <i class="far fa-trash-alt" onclick="deleteTask(${task.id})"></i>
+            </div>`;
+        if (containers[task.status]) containers[task.status].appendChild(card);
+    });
+    localStorage.setItem('teamSpaceSprint', JSON.stringify(tasks));
+};
+function updateDashboardStats() {
+    const todoCount = tasks.filter(t => t.status === 'todo').length;
+    const progressCount = tasks.filter(t => t.status === 'inprogress').length;
+    const doneCount = tasks.filter(t => t.status === 'done').length;
+
+    const statsHTML = `
+        <div class="stats-row">
+            <div class="stat-card stat-blue">
+                <i class="fas fa-list-ul fa-2x"></i>
+                <div><h3>${todoCount}</h3><p>Backlog Tasks</p></div>
+            </div>
+            <div class="stat-card stat-orange">
+                <i class="fas fa-spinner fa-2x"></i>
+                <div><h3>${progressCount}</h3><p>In Progress</p></div>
+            </div>
+            <div class="stat-card stat-purple">
+                <i class="fas fa-check-circle fa-2x"></i>
+                <div><h3>${doneCount}</h3><p>Completed</p></div>
+            </div>
+        </div>
+    `;
+    // Inject stats row at the top of the main content
+    const main = document.querySelector('main');
+    const existingStats = document.querySelector('.stats-row');
+    if (existingStats) existingStats.remove();
+    main.insertAdjacentHTML('afterbegin', statsHTML);
+}
+
+// Call this inside your existing renderTasks() function
+const finalRender = renderTasks;
+renderTasks = function() {
+    finalRender();
+    updateDashboardStats(); // Refresh stats whenever tasks change
+}
+// --- CUTE STICKER LOGIC ---
+let stickers = JSON.parse(localStorage.getItem('teamSpaceStickers')) || [
+    { id: 1, text: "Don't forget coffee! ☕️", color: 'note-yellow' },
+    { id: 2, text: "Team meeting at 2pm 🦄", color: 'note-pink' }
+];
+function renderStickers() {
+    const wall = document.getElementById('sticky-wall');
+    if (!wall) return;
+    
+    wall.innerHTML = '';
+    stickers.forEach(sticker => {
+        const div = document.createElement('div');
+        div.className = `sticky-note ${sticker.color}`;
+        div.innerHTML = `
+            <span class="delete-sticker" onclick="deleteSticker(${sticker.id})">✖️</span>
+            <div contenteditable="true" onblur="updateStickerText(${sticker.id}, this.innerText)" style="outline:none; height:100%;">
+                ${sticker.text}
+            </div>
+        `;
+        wall.appendChild(div);
+    });
+    localStorage.setItem('teamSpaceStickers', JSON.stringify(stickers));
+}
+function addNewSticker() {
+    const colors = ['note-yellow', 'note-pink', 'note-blue', 'note-green'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const newSticker = {
+        id: Date.now(),
+        text: "New note...",
+        color: randomColor
+    };
+    
+    stickers.push(newSticker);
+    renderStickers();
+}
+function updateStickerText(id, newText) {
+    const sticker = stickers.find(s => s.id === id);
+    if (sticker) {
+        sticker.text = newText;
+        localStorage.setItem('teamSpaceStickers', JSON.stringify(stickers));
+    }
+}
+function deleteSticker(id) {
+    stickers = stickers.filter(s => s.id !== id);
+    renderStickers();
+}
+// Initialize stickers on load
+document.addEventListener('DOMContentLoaded', renderStickers);
+
+let trashs = JSON.parse(localStorage.getItem('teamSpaceTrash')) || [];
+
+function deleteTask(id) {
+    // 1. Find the task we are about to delete
+    const taskToDelete = tasks.find(t => t.id === id);
+    
+    if (taskToDelete) {
+        // 2. Add it to the trash array with a timestamp
+        trash.push({ ...taskToDelete, deletedAt: new Date().toISOString() });
+        localStorage.setItem('teamSpaceTrash', JSON.stringify(trash));
+    }
+
+    // 3. Now remove it from the active tasks list
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+}
+function getTotalDeletedCount() {
+    // 1. Get the trash from storage
+    const trash = JSON.parse(localStorage.getItem('teamSpaceTrash')) || [];
+    
+    // 2. Return the count
+    return trash.length;
+}
+function getDateNote(type, date) {
+    const dateNotes = JSON.parse(localStorage.getItem('teamSpaceDateNotes')) || {};
+    return dateNotes?.[date]?.[type] || '';
+}
+
+function saveDateNote(type, date, content) {
+    const dateNotes = JSON.parse(localStorage.getItem('teamSpaceDateNotes')) || {};
+    if (!dateNotes[date]) dateNotes[date] = {};
+    dateNotes[date][type] = content;
+    localStorage.setItem('teamSpaceDateNotes', JSON.stringify(dateNotes));
+}
+function autoSaveNote() {
+    if (!currentNoteType) return;
+
+    const editor = document.getElementById('noteEditor');
+    if (!editor) return;
+
+    const content = editor.innerHTML;
+
+    // If date note is open → save as date note
+    const header = document.getElementById('noteType')?.innerText || '';
+    const match = header.match(/\d{4}-\d{2}-\d{2}/);
+
+    if (match) {
+        saveDateNote(currentNoteType, match[0], content);
+    } else {
+        notes[currentNoteType] = content;
+        localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+    }
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const editor = document.getElementById('noteEditor');
+    if (!editor) return;
+
+    editor.addEventListener('input', () => {
+        autoSaveNote();
+    });
+});
+const originalCloseNote = closeNote;
+closeNote = function () {
+    autoSaveNote();
+    originalCloseNote();
+};
+function copyShareLink() {
+    const link = window.location.href;
+
+    navigator.clipboard.writeText(link).then(() => {
+        alert('🔗 Link copied! Share it with your team.');
+    }).catch(() => {
+        // Fallback
+        const input = document.createElement('input');
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('🔗 Link copied!');
+    });
+}
+function showShareLink() {
+    alert(window.location.href);
+}
+
+
+
+
+
+
+/* ---------------- FIREBASE INIT ---------------- */
+const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_APP.firebaseapp.com",
+    databaseURL: "https://YOUR_APP.firebaseio.com",
+    projectId: "YOUR_APP"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ---------------- ROOM / LINK ---------------- */
+function getRoomId() {
+    const params = new URLSearchParams(window.location.search);
+    let room = params.get('room');
+
+    if (!room) {
+        room = Math.random().toString(36).substring(2, 8);
+        history.replaceState({}, '', `?room=${room}`);
+    }
+    return room;
+}
+
+const ROOM_ID = getRoomId();
+
+/* ---------------- COPY LINK ---------------- */
+function copyShareLink() {
+    navigator.clipboard.writeText(window.location.href);
+
+    const toast = document.getElementById('copyToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+
+    const menu = document.getElementById('shareMenu');
+    if (menu) menu.style.display = 'none';
+}
+
+/* ---------------- LIVE COLLABORATORS ---------------- */
+const USER_ID = 'user_' + Math.random().toString(36).slice(2, 7);
+
+function setupPresence() {
+    const ref = db.ref(`rooms/${ROOM_ID}/users/${USER_ID}`);
+    ref.set({ joinedAt: Date.now() });
+    ref.onDisconnect().remove();
+}
+
+function listenActiveUsers() {
+    db.ref(`rooms/${ROOM_ID}/users`).on('value', snap => {
+        const count = snap.exists() ? Object.keys(snap.val()).length : 1;
+        const el = document.getElementById('activeUsers');
+        el.textContent = count === 1
+            ? '👤 You are editing'
+            : `👥 ${count} people editing`;
+    });
+}
+
+setupPresence();
+listenActiveUsers();
+
+/* ---------------- NOTES SYNC ---------------- */
+/* assumes you already have:
+   let notes = {};
+   let currentNoteType;
+   let noteEditor;
+*/
+
+function syncNotesToCloud() {
+    db.ref(`rooms/${ROOM_ID}/notes`).set(notes);
+}
+
+function listenNotesFromCloud() {
+    db.ref(`rooms/${ROOM_ID}/notes`).on('value', snap => {
+        if (snap.exists()) {
+            notes = snap.val();
+            localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+            if (currentNoteType && noteEditor) {
+                noteEditor.innerHTML = notes[currentNoteType] || '';
+            }
+        }
+    });
+}
+
+listenNotesFromCloud();
+
+/* ---------------- AUTO SAVE ---------------- */
+function autoSaveNote() {
+    if (!currentNoteType || !noteEditor) return;
+
+    notes[currentNoteType] = noteEditor.innerHTML;
+    localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+    syncNotesToCloud();
+}
+
+
+
 
 
 
