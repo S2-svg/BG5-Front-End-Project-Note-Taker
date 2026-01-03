@@ -1488,17 +1488,98 @@ function showShareLink() {
 
 
 
+/* ---------------- FIREBASE INIT ---------------- */
+const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_APP.firebaseapp.com",
+    databaseURL: "https://YOUR_APP.firebaseio.com",
+    projectId: "YOUR_APP"
+};
 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
+/* ---------------- ROOM / LINK ---------------- */
+function getRoomId() {
+    const params = new URLSearchParams(window.location.search);
+    let room = params.get('room');
 
+    if (!room) {
+        room = Math.random().toString(36).substring(2, 8);
+        history.replaceState({}, '', `?room=${room}`);
+    }
+    return room;
+}
 
+const ROOM_ID = getRoomId();
 
+/* ---------------- COPY LINK ---------------- */
+function copyShareLink() {
+    navigator.clipboard.writeText(window.location.href);
 
+    const toast = document.getElementById('copyToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
 
+    const menu = document.getElementById('shareMenu');
+    if (menu) menu.style.display = 'none';
+}
 
+/* ---------------- LIVE COLLABORATORS ---------------- */
+const USER_ID = 'user_' + Math.random().toString(36).slice(2, 7);
 
+function setupPresence() {
+    const ref = db.ref(`rooms/${ROOM_ID}/users/${USER_ID}`);
+    ref.set({ joinedAt: Date.now() });
+    ref.onDisconnect().remove();
+}
 
+function listenActiveUsers() {
+    db.ref(`rooms/${ROOM_ID}/users`).on('value', snap => {
+        const count = snap.exists() ? Object.keys(snap.val()).length : 1;
+        const el = document.getElementById('activeUsers');
+        el.textContent = count === 1
+            ? '👤 You are editing'
+            : `👥 ${count} people editing`;
+    });
+}
 
+setupPresence();
+listenActiveUsers();
+
+/* ---------------- NOTES SYNC ---------------- */
+/* assumes you already have:
+   let notes = {};
+   let currentNoteType;
+   let noteEditor;
+*/
+
+function syncNotesToCloud() {
+    db.ref(`rooms/${ROOM_ID}/notes`).set(notes);
+}
+
+function listenNotesFromCloud() {
+    db.ref(`rooms/${ROOM_ID}/notes`).on('value', snap => {
+        if (snap.exists()) {
+            notes = snap.val();
+            localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+            if (currentNoteType && noteEditor) {
+                noteEditor.innerHTML = notes[currentNoteType] || '';
+            }
+        }
+    });
+}
+
+listenNotesFromCloud();
+
+/* ---------------- AUTO SAVE ---------------- */
+function autoSaveNote() {
+    if (!currentNoteType || !noteEditor) return;
+
+    notes[currentNoteType] = noteEditor.innerHTML;
+    localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+    syncNotesToCloud();
+}
 
 
 

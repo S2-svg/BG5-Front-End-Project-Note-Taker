@@ -10,6 +10,9 @@
     <script src="/js/teamspace.js"></script>
 
 </head>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 
 <body>
     <header>
@@ -41,17 +44,12 @@
         </div>
     </header>
 
-
-
-
-
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-
-
-
+    <div id="shareMenu" class="share-menu">
+        <div class="share-item copy-link" onclick="copyShareLink()">
+            <i class="fas fa-link"></i>
+            <span>Copy Link</span>
+        </div>
+    </div>
 
     <div class="layout">
         <aside>

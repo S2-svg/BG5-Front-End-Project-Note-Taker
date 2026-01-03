@@ -768,3 +768,60 @@ main {
 
 
 
+
+
+
+
+
+
+
+
+.share-menu {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.12);
+    width: 220px;
+    padding: 6px 0;
+}
+
+.share-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.share-item:hover {
+    background: #f1f5f9;
+}
+
+.copy-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .25s ease;
+    z-index: 9999;
+}
+
+.copy-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.active-users {
+    font-size: 13px;
+    color: #64748b;
+    margin-left: 12px;
+}
+
+
+
+
