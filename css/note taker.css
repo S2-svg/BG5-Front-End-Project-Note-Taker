@@ -1379,7 +1379,10 @@ textarea.form-control {
     padding-top: 25px;
     border-top: 2px solid rgba(0, 217, 255, 0.1);
 }
-
+.modal-actions-2{
+    display: flex;
+    gap: 85px;
+}
 /* ================ TOAST NOTIFICATIONS ================ */
 .toast {
     position: fixed;
