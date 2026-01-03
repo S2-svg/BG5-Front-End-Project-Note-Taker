@@ -1463,15 +1463,25 @@ closeNote = function () {
     autoSaveNote();
     originalCloseNote();
 };
+function copyShareLink() {
+    const link = window.location.href;
 
-
-
-
-
-
-
-
-
+    navigator.clipboard.writeText(link).then(() => {
+        alert('🔗 Link copied! Share it with your team.');
+    }).catch(() => {
+        // Fallback
+        const input = document.createElement('input');
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('🔗 Link copied!');
+    });
+}
+function showShareLink() {
+    alert(window.location.href);
+}
 
 
 
