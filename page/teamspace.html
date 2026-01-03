@@ -10,6 +10,9 @@
     <script src="/js/teamspace.js"></script>
 
 </head>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 
 <body>
     <header>
@@ -30,9 +33,24 @@
                         style="color:#ea4335"></i> Email</div>
                 <div class="share-item" onclick="shareVia('linkedin')"><i class="fab fa-linkedin"
                         style="color:#0077b5"></i> LinkedIn</div>
+
+
+                <div class="share-item copy-link" onclick="copyShareLink()">
+                    <i class="fas fa-link"></i>
+                    <span>Copy Link</span>
+                </div>
+
             </div>
         </div>
     </header>
+
+    <div id="shareMenu" class="share-menu">
+        <div class="share-item copy-link" onclick="copyShareLink()">
+            <i class="fas fa-link"></i>
+            <span>Copy Link</span>
+        </div>
+    </div>
+
     <div class="layout">
         <aside>
             <div class="calendar-container">
@@ -147,6 +165,12 @@
                     <option value="4">18</option>
                     <option value="5">24</option>
                     <option value="6">32</option>
+                    <option value="7">36</option>
+                    <option value="7">40</option>
+                    <option value="8">42</option>
+
+
+
                 </select>
                 <button onclick="execCmd('bold', null)"><i class="fas fa-bold"></i></button>
                 <button onclick="execCmd('italic', null)"><i class="fas fa-italic"></i></button>
@@ -310,6 +334,87 @@
 
         </div>
     </div>
+    <div id="updateModal" class="modal"
+        style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); align-items:center; justify-content:center;">
+        <div
+            style="background:white; width:95%; max-width:1000px; height: 85vh; border-radius:30px; display:flex; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+
+            <div
+                style="width:35%; background:#f8fafc; padding:30px; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; overflow: hidden;">
+                <h3 style="margin:0 0 20px 0; color:#1e293b; font-size:1.2rem; font-weight:800;">Task Config</h3>
+
+                <div style="margin-bottom:20px;">
+                    <label
+                        style="font-size:0.7rem; font-weight:800; color:#94a3b8; text-transform:uppercase;">Priority</label>
+                    <select id="taskPriority"
+                        style="width:100%; padding:10px; border-radius:10px; border:2px solid #e2e8f0; margin-top:5px; outline:none; background:white;">
+                        <option value="Low">🟢 Low</option>
+                        <option value="Medium" selected>🟡 Medium</option>
+                        <option value="High">🔴 High</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:30px;">
+                    <label style="font-size:0.7rem; font-weight:800; color:#94a3b8; text-transform:uppercase;">Category
+                        Icon</label>
+                    <div class="icon-selector"
+                        style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:5px;">
+                        <span class="icon-option selected" onclick="selectIcon(this, 'fa-tasks')"><i
+                                class="fas fa-tasks"></i></span>
+                        <span class="icon-option" onclick="selectIcon(this, 'fa-rocket')"><i
+                                class="fas fa-rocket"></i></span>
+                        <span class="icon-option" onclick="selectIcon(this, 'fa-bug')"><i class="fas fa-bug"></i></span>
+                        <span class="icon-option" onclick="selectIcon(this, 'fa-lightbulb')"><i
+                                class="fas fa-lightbulb"></i></span>
+                    </div>
+                </div>
+
+                <div
+                    style="flex-grow:1; display:flex; flex-direction:column; min-height:0; border-top:2px dashed #e2e8f0; padding-top:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h4 style="margin:0; color:#1e293b; font-weight:700;">✨ Quick Stickers</h4>
+                        <button onclick="addNewSticker()"
+                            style="background:#ffcc00; border:none; padding:4px 12px; border-radius:8px; font-size:0.7rem; font-weight:800; cursor:pointer; box-shadow:0 4px 0 #d4aa00;">+
+                            Add</button>
+                    </div>
+
+                    <div id="sticky-wall"
+                        style="display: grid; grid-template-columns: 1fr; gap: 15px; overflow-y: auto; padding-right: 5px; padding-bottom: 20px; scrollbar-width: thin;">
+                    </div>
+                </div>
+
+                <div style="margin-top:auto; padding-top:20px;">
+                    <button class="btn" onclick="closeUpdateModal()"
+                        style="width:100%; padding:12px; border-radius:12px; background:#f1f5f9; border:none; color:#64748b; font-weight:bold; margin-bottom:10px; cursor:pointer;">Discard</button>
+                    <button class="btn" onclick="saveRichUpdate()"
+                        style="width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg, #0ea5e9, #2563eb); border:none; color:white; font-weight:bold; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); cursor:pointer;">Publish
+                        Task</button>
+                </div>
+            </div>
+
+            <div style="width:65%; padding:40px; background:white; display:flex; flex-direction:column;">
+                <input type="text" id="updateTitle" placeholder="What is the main task?"
+                    style="width:100%; border:none; font-size:1.4rem; outline:none; color:#1e293b; margin-bottom:10px;">
+
+                <div class="editor-toolbar"
+                    style="border: 1px solid #f1f5f9; border-radius:12px; padding:10px; margin-bottom:20px; background:#f8fafc; display:flex; gap:10px; flex-wrap: wrap;">
+                    <button class="tool-btn" onclick="execCmd('bold')" style="padding: 5px 10px; cursor:pointer;"><i
+                            class="fas fa-bold"></i></button>
+                    <button class="tool-btn" onclick="execCmd('italic')" style="padding: 5px 10px; cursor:pointer;"><i
+                            class="fas fa-italic"></i></button>
+                    <input type="color" onchange="execCmd('foreColor', this.value)"
+                        style="border:none; background:none; cursor:pointer; width:25px; height:25px;">
+                    <button class="tool-btn" onclick="execCmd('insertUnorderedList')"
+                        style="padding: 5px 10px; cursor:pointer;"><i class="fas fa-list-ul"></i></button>
+                </div>
+
+                <div id="richNoteEditor" contenteditable="true"
+                    style="flex-grow:1; font-size:1.2rem; line-height:1.6; color:#334155; outline:none; overflow-y:auto; border:1px solid #f1f5f9; border-radius:12px; padding:20px;"
+                    placeholder="Start writing your update here..."></div>
+            </div>
+        </div>
+    </div>
+
     <script src="./js/teamspace.js"></script>
 </body>
 
