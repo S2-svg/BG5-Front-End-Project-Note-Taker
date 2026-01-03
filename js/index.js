@@ -949,27 +949,456 @@ function quickAdd(type) {
     }
 }
 
-function exportData() {
-    const data = {
-        notes,
-        tasks,
-        events,
-        exportDate: new Date().toISOString(),
-        version: "1.0",
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
+// PDF Export Functions
+function exportToPDF(type = 'notes') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString();
+    
+    let title = '';
+    let content = [];
+    
+    // Set document title and content based on type
+    switch(type) {
+        case 'notes':
+            title = 'My Notes Export';
+            content = getNotesContent();
+            break;
+        case 'tasks':
+            title = 'My Tasks Export';
+            content = getTasksContent();
+            break;
+        case 'events':
+            title = 'My Events Export';
+            content = getEventsContent();
+            break;
+        case 'all':
+            title = 'Complete Export - Note Taker';
+            content = getAllContent();
+            break;
+        default:
+            title = 'Note Taker Export';
+            content = getNotesContent();
+    }
+    
+    // Add header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 53, 147);
+    doc.text(title, 105, 20, { align: 'center' });
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Generated on ${currentDate} at ${currentTime}`, 105, 30, { align: 'center' });
+    doc.line(10, 35, 200, 35);
+    
+    // Add content
+    let yPos = 45;
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    
+    content.forEach((section, index) => {
+        if (index > 0) {
+            yPos += 10;
+        }
+        
+        // Section title
+        if (section.title) {
+            doc.setFontSize(14);
+            doc.setTextColor(40, 53, 147);
+            doc.text(section.title, 10, yPos);
+            yPos += 8;
+        }
+        
+        // Section content
+        doc.setFontSize(11);
+        doc.setTextColor(50);
+        
+        if (section.type === 'note') {
+            // Note format
+            doc.setTextColor(0, 102, 204);
+            doc.text(`[${section.tag}] ${section.title}`, 10, yPos);
+            yPos += 7;
+            
+            doc.setTextColor(0, 0, 0);
+            const lines = doc.splitTextToSize(section.content, 180);
+            lines.forEach(line => {
+                doc.text(line, 15, yPos);
+                yPos += 7;
+            });
+            
+            // Metadata
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text(`Created: ${section.created} | ${section.status}`, 15, yPos);
+            yPos += 10;
+            
+        } else if (section.type === 'task') {
+            // Task format
+            const status = section.done ? '✓' : '○';
+            doc.text(`${status} ${section.text}`, 10, yPos);
+            yPos += 7;
+            
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text(`Added: ${section.created}`, 15, yPos);
+            yPos += 8;
+            
+        } else if (section.type === 'event') {
+            // Event format
+            doc.setTextColor(153, 51, 0);
+            doc.text(`${section.time} - ${section.title}`, 10, yPos);
+            yPos += 7;
+            
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text(`Date: ${section.date}`, 15, yPos);
+            yPos += 8;
+        }
+        
+        // Add page break if needed
+        if (yPos > 280) {
+            doc.addPage();
+            yPos = 20;
+        }
     });
+    
+    // Add footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, 195, 285, { align: 'right' });
+        doc.text('Exported from Note Taker App', 10, 285);
+    }
+    
+    // Save the PDF
+    doc.save(`notetaker-export-${type}-${currentDate.replace(/\//g, '-')}.pdf`);
+}
+
+function getNotesContent() {
+    const filteredNotes = notes.filter(n => !n.deleted);
+    return filteredNotes.map(note => ({
+        type: 'note',
+        title: note.title,
+        content: note.content,
+        tag: note.tag,
+        created: new Date(note.createdAt).toLocaleDateString(),
+        status: note.archived ? 'Archived' : note.pinned ? 'Pinned' : note.starred ? 'Starred' : 'Active'
+    }));
+}
+
+function getTasksContent() {
+    return tasks.map(task => ({
+        type: 'task',
+        text: task.text,
+        done: task.done,
+        created: new Date(task.createdAt).toLocaleDateString()
+    }));
+}
+
+function getEventsContent() {
+    return events.map(event => ({
+        type: 'event',
+        title: event.title,
+        time: event.time,
+        date: new Date(event.date).toLocaleDateString()
+    }));
+}
+
+function getAllContent() {
+    const content = [];
+    
+    if (notes.length > 0) {
+        content.push({
+            title: 'NOTES',
+            type: 'section'
+        }, ...getNotesContent());
+    }
+    
+    if (tasks.length > 0) {
+        content.push({
+            title: 'TASKS',
+            type: 'section'
+        }, ...getTasksContent());
+    }
+    
+    if (events.length > 0) {
+        content.push({
+            title: 'EVENTS',
+            type: 'section'
+        }, ...getEventsContent());
+    }
+    
+    return content;
+}
+
+// Word Export Functions
+function exportToWord(type = 'notes') {
+    let title = '';
+    let content = '';
+    
+    switch(type) {
+        case 'notes':
+            title = 'My Notes Export';
+            content = generateWordNotesContent();
+            break;
+        case 'tasks':
+            title = 'My Tasks Export';
+            content = generateWordTasksContent();
+            break;
+        case 'events':
+            title = 'My Events Export';
+            content = generateWordEventsContent();
+            break;
+        case 'all':
+            title = 'Complete Export - Note Taker';
+            content = generateWordAllContent();
+            break;
+    }
+    
+    const currentDate = new Date().toLocaleDateString();
+    const header = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>${title}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                h1 { color: #283593; border-bottom: 2px solid #283593; padding-bottom: 10px; }
+                h2 { color: #3949ab; margin-top: 30px; }
+                .note { margin: 20px 0; padding: 15px; border-left: 4px solid #2196f3; background: #f5f9ff; }
+                .note-title { color: #1976d2; font-weight: bold; }
+                .note-tag { display: inline-block; background: #e3f2fd; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 10px; }
+                .task { margin: 10px 0; padding: 8px; }
+                .task-done { text-decoration: line-through; color: #666; }
+                .event { margin: 10px 0; padding: 10px; background: #fff8e1; border-left: 4px solid #ffb300; }
+                .metadata { font-size: 12px; color: #666; margin-top: 5px; }
+                .timestamp { text-align: right; font-size: 11px; color: #999; margin-top: 30px; }
+                .page-break { page-break-after: always; }
+            </style>
+        </head>
+        <body>
+    `;
+    
+    const footer = `
+            <div class="timestamp">
+                Generated on ${currentDate} • Exported from Note Taker App
+            </div>
+        </body>
+        </html>
+    `;
+    
+    const fullContent = header + content + footer;
+    
+    // Create and download the .doc file
+    const blob = new Blob([fullContent], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = `notetaker-backup-${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `notetaker-${type}-export-${currentDate.replace(/\//g, '-')}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
 
-    alert("Data exported successfully!");
+function generateWordNotesContent() {
+    const filteredNotes = notes.filter(n => !n.deleted);
+    let html = '<h1>My Notes</h1>';
+    
+    if (filteredNotes.length === 0) {
+        html += '<p>No notes available.</p>';
+        return html;
+    }
+    
+    filteredNotes.forEach(note => {
+        const date = new Date(note.createdAt).toLocaleDateString();
+        const status = note.archived ? 'Archived' : note.pinned ? 'Pinned' : note.starred ? 'Starred' : 'Active';
+        
+        html += `
+            <div class="note">
+                <div class="note-title">${note.title} 
+                    <span class="note-tag">${note.tag}</span>
+                </div>
+                <div>${note.content.replace(/\n/g, '<br>')}</div>
+                <div class="metadata">
+                    Created: ${date} | Status: ${status} | 
+                    ${note.color && note.color !== 'transparent' ? `Color: <span style="color:${note.color}">●</span>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    return html;
+}
+
+function generateWordTasksContent() {
+    let html = '<h1>My Tasks</h1>';
+    
+    if (tasks.length === 0) {
+        html += '<p>No tasks available.</p>';
+        return html;
+    }
+    
+    const pendingTasks = tasks.filter(t => !t.done);
+    const completedTasks = tasks.filter(t => t.done);
+    
+    if (pendingTasks.length > 0) {
+        html += '<h2>Pending Tasks</h2>';
+        pendingTasks.forEach(task => {
+            const date = new Date(task.createdAt).toLocaleDateString();
+            html += `
+                <div class="task">
+                    ○ ${task.text}
+                    <div class="metadata">Added: ${date}</div>
+                </div>
+            `;
+        });
+    }
+    
+    if (completedTasks.length > 0) {
+        html += '<h2>Completed Tasks</h2>';
+        completedTasks.forEach(task => {
+            const date = new Date(task.createdAt).toLocaleDateString();
+            html += `
+                <div class="task task-done">
+                    ✓ ${task.text}
+                    <div class="metadata">Completed: ${date}</div>
+                </div>
+            `;
+        });
+    }
+    
+    return html;
+}
+
+function generateWordEventsContent() {
+    let html = '<h1>My Events</h1>';
+    
+    if (events.length === 0) {
+        html += '<p>No events available.</p>';
+        return html;
+    }
+    
+    // Sort events by date
+    const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    sortedEvents.forEach(event => {
+        const date = new Date(event.date).toLocaleString();
+        html += `
+            <div class="event">
+                <strong>${event.title}</strong><br>
+                Time: ${event.time}<br>
+                Date: ${date}
+            </div>
+        `;
+    });
+    
+    return html;
+}
+
+function generateWordAllContent() {
+    let html = '<h1>Complete Export - Note Taker</h1>';
+    
+    if (notes.length > 0) {
+        html += '<h2>Notes</h2>' + generateWordNotesContent().replace('<h1>My Notes</h1>', '');
+    }
+    
+    if (tasks.length > 0) {
+        html += '<h2>Tasks</h2>' + generateWordTasksContent().replace('<h1>My Tasks</h1>', '');
+    }
+    
+    if (events.length > 0) {
+        html += '<h2>Events</h2>' + generateWordEventsContent().replace('<h1>My Events</h1>', '');
+    }
+    
+    return html;
+}
+
+// Enhanced Export Dialog
+function openExportDialog() {
+    const dialogHTML = `
+        <div id="exportDialog" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>Export Data</h2>
+                    <button class="close-modal" onclick="closeExportDialog()">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label>Select Export Type</label>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;">
+                        <button class="export-option" onclick="exportToPDF('notes')">
+                            <i data-lucide="file-text"></i> Export Notes as PDF
+                        </button>
+                        <button class="export-option" onclick="exportToPDF('tasks')">
+                            <i data-lucide="check-square"></i> Export Tasks as PDF
+                        </button>
+                        <button class="export-option" onclick="exportToPDF('events')">
+                            <i data-lucide="calendar"></i> Export Events as PDF
+                        </button>
+                        <button class="export-option" onclick="exportToPDF('all')">
+                            <i data-lucide="archive"></i> Export Everything as PDF
+                        </button>
+                        <hr style="border: 1px solid var(--border); width: 100%;">
+                        <button class="export-option" onclick="exportToWord('notes')">
+                            <i data-lucide="file-text"></i> Export Notes as Word
+                        </button>
+                        <button class="export-option" onclick="exportToWord('tasks')">
+                            <i data-lucide="check-square"></i> Export Tasks as Word
+                        </button>
+                        <button class="export-option" onclick="exportToWord('events')">
+                            <i data-lucide="calendar"></i> Export Events as Word
+                        </button>
+                        <button class="export-option" onclick="exportToWord('all')">
+                            <i data-lucide="archive"></i> Export Everything as Word
+                        </button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="closeExportDialog()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing dialog if any
+    const existingDialog = document.getElementById('exportDialog');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+    
+    // Add dialog to body
+    document.body.insertAdjacentHTML('beforeend', dialogHTML);
+    
+    // Show dialog
+    const dialog = document.getElementById('exportDialog');
+    dialog.style.display = 'flex';
+    setTimeout(() => {
+        dialog.style.animation = "fadeIn 0.3s ease-out";
+    }, 10);
+    
+    refreshIcons();
+}
+
+function closeExportDialog() {
+    const dialog = document.getElementById('exportDialog');
+    if (dialog) {
+        dialog.style.animation = "fadeIn 0.3s ease-out reverse";
+        setTimeout(() => {
+            dialog.style.display = "none";
+            dialog.remove();
+        }, 300);
+    }
+}
+
+// Update the exportData function to use the new dialog
+function exportData() {
+    openExportDialog();
 }
 
 function importData() {
@@ -1065,7 +1494,7 @@ function refreshIcons() {
     lucide.createIcons();
 }
 
-// Add CSS for trash management
+// Add CSS for trash management and export dialog
 const style = document.createElement('style');
 style.textContent = `
     .trash-management {
@@ -1122,6 +1551,37 @@ style.textContent = `
     .delete-btn:hover {
         color: var(--danger) !important;
         fill: var(--danger) !important;
+    }
+    
+    /* Export Dialog Styles */
+    .export-option {
+        background: var(--card-bg);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        color: var(--text-main);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+        width: 100%;
+    }
+    
+    .export-option:hover {
+        background: var(--primary-soft);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+    
+    .export-option i {
+        width: 20px;
+        height: 20px;
+        color: var(--primary);
     }
 `;
 document.head.appendChild(style);
@@ -1195,6 +1655,10 @@ window.addEventListener("DOMContentLoaded", () => {
     window.deleteEvent = deleteEvent;
     window.quickAdd = quickAdd;
     window.exportData = exportData;
+    window.exportToPDF = exportToPDF;
+    window.exportToWord = exportToWord;
+    window.openExportDialog = openExportDialog;
+    window.closeExportDialog = closeExportDialog;
     window.importData = importData;
     window.logout = logout;
     window.openSettings = openSettings;

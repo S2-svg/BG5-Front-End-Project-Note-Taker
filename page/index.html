@@ -30,6 +30,8 @@
     />
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/css/index.css" />
+    <!-- Add this to your HTML file -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
   <body>
     <aside class="sidebar">
@@ -261,20 +263,20 @@
             <div id="digitalClock">00:00:00</div>
             <div id="quickActions" style="display: flex; gap: 10px">
               <button
-                class="btn-secondary"
-                onclick="exportData()"
-                title="Export Data"
+                  class="btn-secondary"
+                  onclick="exportData()"
+                  title="Export Data"
               >
-                <i data-lucide="download"></i>
+                  <i data-lucide="download"></i> Export
               </button>
               <button
-                class="btn-secondary"
-                onclick="importData()"
-                title="Import Data"
+                  class="btn-secondary"
+                  onclick="importData()"
+                  title="Import Data"
               >
-                <i data-lucide="upload"></i>
+                  <i data-lucide="upload"></i> Import
               </button>
-            </div>
+          </div>
             <button class="btn-primary" onclick="openNoteModal()">
               <i data-lucide="plus"></i> New Note
             </button>
