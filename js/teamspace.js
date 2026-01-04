@@ -66,31 +66,29 @@ function renderMembers() {
         select.innerHTML += `<option value="${m.name}">${m.name}</option>`;
     });
 }
-
-// --- NOTE LOGIC (PIN & PERSISTENT STORAGE) ---
-let currentNoteType = '';
-function execCmd(command, value) { document.execCommand(command, false, value); }
-
 function openNote(type) {
-    currentNoteType = type;
-    renderNoteSidebar();
-    const isPinned = pinnedNotes.includes(type);
-    document.getElementById('noteType').innerHTML = `
+        currentNoteType = type;
+        renderNoteSidebar();
+        const isPinned = pinnedNotes.includes(type);
+        document.getElementById('noteType').innerHTML = `
             ${type} Notes 
             <i class="fas fa-thumbtack" id="pinBtn" style="cursor:pointer; margin-left:10px; color: ${isPinned ? 'var(--accent-blue)' : '#cbd5e1'}" 
                onclick="togglePin('${type}')"></i>
         `;
-    document.getElementById('noteEditor').innerHTML = notes[type] || "Start typing your " + type + " notes...";
-    document.getElementById('noteModal').style.display = 'flex';
-}
+        document.getElementById('noteEditor').innerHTML = notes[type] || "Start typing your " + type + " notes...";
+        document.getElementById('noteModal').style.display = 'flex';
+    }
 
-function saveNote() {
-    if (!currentNoteType) return;
-    notes[currentNoteType] = document.getElementById('noteEditor').innerHTML;
-    localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-    alert(currentNoteType + " note saved successfully!");
-    closeNote();
-}
+    function saveNote() {
+        if(!currentNoteType) return;
+        notes[currentNoteType] = document.getElementById('noteEditor').innerHTML;
+        localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+        alert(currentNoteType + " note saved successfully!");
+        closeNote();
+    }
+
+
+
 
 function togglePin(type) {
     const index = pinnedNotes.indexOf(type);
@@ -681,6 +679,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+
+
 // In the calendar generation code, update the date creation to make dates clickable
 function renderCalendar() {
     const calendarGrid = document.querySelector('.calendar-grid');
@@ -1211,9 +1212,25 @@ document.addEventListener('click', function (e) {
 });
 
 function openUpdateModal() {
-    document.getElementById('updateTitle').value = '';
-    document.getElementById('richNoteEditor').innerHTML = 'Start writing your update here...';
-    document.getElementById('updateModal').style.display = 'flex';
+    const titleInput = document.getElementById('updateTitle');
+    const editor = document.getElementById('richNoteEditor');
+    const modal = document.getElementById('updateModal');
+
+    if (titleInput) titleInput.value = '';
+    
+    if (editor) {
+        editor.innerHTML = ''; // Keep it empty so the label shows
+        // This attribute tells the CSS what text to show as a label
+        editor.setAttribute('data-label', '');
+    }
+
+    if (modal) modal.style.display = 'flex';
+}
+
+// Function to close the update modal
+function closeUpdateModal() {
+    const modal = document.getElementById('updateModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function closeUpdateModal() {
@@ -1484,10 +1501,6 @@ function showShareLink() {
 }
 
 
-
-
-
-
 /* ---------------- FIREBASE INIT ---------------- */
 const firebaseConfig = {
     apiKey: "YOUR_KEY",
@@ -1498,6 +1511,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
 
 /* ---------------- ROOM / LINK ---------------- */
 function getRoomId() {
@@ -1580,8 +1594,6 @@ function autoSaveNote() {
     localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
     syncNotesToCloud();
 }
-
-
 
 
 
