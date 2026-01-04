@@ -1565,59 +1565,9 @@ function listenActiveUsers() {
     });
 }
 
-// Function to send note data to the cloud
-function syncNoteToFirebase(type, content) {
-    db.ref(`rooms/${ROOM_ID}/notes/${type}`).set({
-        content: content,
-        updatedBy: USER_ID,
-        timestamp: Date.now()
-    });
-}
-
-// Listen for changes from friends
-function listenForRemoteNoteChanges() {
-    db.ref(`rooms/${ROOM_ID}/notes`).on('child_changed', (snapshot) => {
-        const data = snapshot.val();
-        const type = snapshot.key;
-        
-        // Only update if someone else made the change
-        if (data.updatedBy !== USER_ID) {
-            notes[type] = data.content;
-            if (currentNoteType === type) {
-                document.getElementById('noteEditor').innerHTML = data.content;
-            }
-        }
-    });
-}
-function autoSaveNote() {
-    if (!currentNoteType) return;
-    const editor = document.getElementById('noteEditor');
-    const content = editor.innerHTML;
-
-    // Save locally first
-    notes[currentNoteType] = content;
-    localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-
-    // SEND TO FRIENDS VIA FIREBASE
-    syncNoteToFirebase(currentNoteType, content);
-}
-
-function copyShareLink() {
-    const link = window.location.href;
-    navigator.clipboard.writeText(link).then(() => {
-        // Simple alert if you don't have the custom toast UI yet
-        alert("Link copied! Send this to your friends: " + link);
-        
-        // Optional: your existing toast logic
-        const toast = document.getElementById('copyToast');
-        if (toast) {
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 1500);
-        }
-    });
-}
 setupPresence();
 listenActiveUsers();
+
 function editTask(id) {
     // 1. Find the specific task in the array
     const taskToEdit = tasks.find(t => t.id === id);
@@ -1727,23 +1677,23 @@ function downloadBackup() {
 }
 // Change this at the top of your script
 let memberss = JSON.parse(localStorage.getItem('teamSpaceMembers')) || [];
-function addMember(name, role, telegram) {
-    const newMember = { name, role, telegram };
-    members.push(newMember);
-    
-    // SAVE TO LOCALSTORAGE
-    localStorage.setItem('teamSpaceMembers', JSON.stringify(members));
-    
-    renderMembers();
+function copyShareLink() {
+    // Ensure the URL includes the ?room=xxxxx parameter
+    const shareUrl = window.location.href;
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        // Show success notification
+        const toast = document.getElementById('copyToast');
+        if (toast) {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        } else {
+            alert("🔗 Link copied! Send this to your team: " + shareUrl);
+        }
+    }).catch(err => {
+        console.error('Failed to copy link: ', err);
+    });
 }
-
-
-
-
-
-
-
-
 
 
 
