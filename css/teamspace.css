@@ -123,6 +123,7 @@ header {
     font-size: 1.6rem;
     margin: 0;
     color: #0fad79;
+    
 }
 
 .logo-text p {
@@ -804,7 +805,7 @@ main {
 
 .active-users {
     font-size: 13px;
-    color: #64748b;
+    color: #e4690b;
     margin-left: 12px;
 }
 
@@ -836,6 +837,17 @@ button {
     pointer-events: auto !important;
     z-index: 9999;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

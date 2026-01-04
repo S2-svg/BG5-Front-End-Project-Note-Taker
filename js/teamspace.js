@@ -87,9 +87,6 @@ function openNote(type) {
         closeNote();
     }
 
-
-
-
 function togglePin(type) {
     const index = pinnedNotes.indexOf(type);
     if (index > -1) pinnedNotes.splice(index, 1);
@@ -1511,7 +1508,6 @@ function showShareLink() {
     alert(window.location.href);
 }
 
-
 /* ---------------- FIREBASE INIT ---------------- */
 const firebaseConfig = {
     apiKey: "YOUR_KEY",
@@ -1579,6 +1575,129 @@ listenActiveUsers();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function editTask(id) {
+    // 1. Find the specific task in the array
+    const taskToEdit = tasks.find(t => t.id === id);
+    
+    if (taskToEdit) {
+        // 2. Fill the modal inputs with existing data
+        document.getElementById('updateTitle').value = taskToEdit.title;
+        document.getElementById('richNoteEditor').innerHTML = taskToEdit.subtitle;
+        document.getElementById('taskPriority').value = taskToEdit.priority || 'Medium';
+        
+        // 3. Set the icon highlight in the modal
+        selectedIconClass = taskToEdit.icon || 'fa-tasks';
+        document.querySelectorAll('.icon-option').forEach(opt => {
+            opt.classList.remove('selected');
+            if (opt.querySelector(`.${selectedIconClass}`)) {
+                opt.classList.add('selected');
+            }
+        });
+
+        // 4. Change the "Save" behavior to UPDATE instead of CREATE
+        // We temporarily store the ID being edited on the save button
+        const saveBtn = document.querySelector('.modal-footer .btn-primary');
+        saveBtn.onclick = () => updateExistingTask(id);
+        
+        // 5. Open the modal (Use your existing open function name)
+        openUpdateModal(); 
+    }
+}
+function updateExistingTask(id) {
+    const index = tasks.findIndex(t => t.id === id);
+    if (index === -1) return;
+
+    const priority = document.getElementById('taskPriority').value;
+    const priorityColors = { 'Low': '#22c55e', 'Medium': '#eab308', 'High': '#ef4444' };
+
+    // Update the existing object
+    tasks[index].title = document.getElementById('updateTitle').value;
+    tasks[index].subtitle = document.getElementById('richNoteEditor').innerHTML;
+    tasks[index].priority = priority;
+    tasks[index].icon = selectedIconClass;
+    tasks[index].color = priorityColors[priority];
+
+    renderTasks();
+    closeUpdateModal();
+    
+    // Reset the save button back to the original "Create" mode
+    const saveBtn = document.querySelector('.modal-footer .btn-primary');
+    saveBtn.onclick = saveRichUpdate;
+}
+
+
+function saveAllData() {
+    const appState = {
+        generalNotes: notes,                 // Your 'Daily', 'Weekly', etc.
+        dateNotes: JSON.parse(localStorage.getItem('teamSpaceDateNotes')) || {},
+        tasks: tasks,                       // Your Kanban tasks
+        trash: trash,                       // Deleted items
+        members: members,                   // Team members
+        stickers: stickers,                 // Sticky notes
+        pinned: pinnedNotes,                // Which notes are pinned
+        lastSaved: new Date().toISOString()
+    };
+
+    localStorage.setItem('teamSpace_MasterData', JSON.stringify(appState));
+    console.log("All data synced to LocalStorage at: " + appState.lastSaved);
+}
+
+function loadAllData() {
+    const savedData = localStorage.getItem('teamSpace_MasterData');
+    
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        
+        // Restore each variable (use fallback to empty if data is missing)
+        notes = data.generalNotes || {};
+        tasks = data.tasks || [];
+        trash = data.trash || [];
+        members = data.members || [];
+        stickers = data.stickers || [];
+        pinnedNotes = data.pinned || [];
+
+        // Re-render the UI with the loaded data
+        renderTasks();
+        renderMembers();
+        renderStickers();
+        renderNoteSidebar();
+        updateTrashCount();
+        updateDashboardStats();
+    }
+}
+function downloadBackup() {
+    const dataStr = localStorage.getItem('teamSpace_MasterData');
+    if (!dataStr) {
+        alert("No data found to backup!");
+        return;
+    }
+    
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `teamspace_backup_${new Date().toLocaleDateString()}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+}
 
 
 
