@@ -1698,7 +1698,17 @@ function downloadBackup() {
     
     URL.revokeObjectURL(url);
 }
-
+// Change this at the top of your script
+let memberss = JSON.parse(localStorage.getItem('teamSpaceMembers')) || [];
+function addMember(name, role, telegram) {
+    const newMember = { name, role, telegram };
+    members.push(newMember);
+    
+    // SAVE TO LOCALSTORAGE
+    localStorage.setItem('teamSpaceMembers', JSON.stringify(members));
+    
+    renderMembers();
+}
 
 
 
