@@ -661,8 +661,19 @@ document.addEventListener('DOMContentLoaded', () => {
 renderTasks();
 
 function closeNote() {
-    document.getElementById('noteModal').style.display = 'none';
-    currentNoteType = ''; // Reset current note type
+    const modal = document.getElementById('noteModal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Reset any active states if needed
+        currentNoteType = null;
+        // Clear any active formatting
+        document.execCommand('removeFormat', false, null);
+    }
+    // Also close any open color picker
+    const colorPicker = document.getElementById('colorPicker');
+    if (colorPicker) {
+        colorPicker.style.display = 'none';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1561,39 +1572,6 @@ function listenActiveUsers() {
 setupPresence();
 listenActiveUsers();
 
-/* ---------------- NOTES SYNC ---------------- */
-/* assumes you already have:
-   let notes = {};
-   let currentNoteType;
-   let noteEditor;
-*/
-
-function syncNotesToCloud() {
-    db.ref(`rooms/${ROOM_ID}/notes`).set(notes);
-}
-
-function listenNotesFromCloud() {
-    db.ref(`rooms/${ROOM_ID}/notes`).on('value', snap => {
-        if (snap.exists()) {
-            notes = snap.val();
-            localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-            if (currentNoteType && noteEditor) {
-                noteEditor.innerHTML = notes[currentNoteType] || '';
-            }
-        }
-    });
-}
-
-listenNotesFromCloud();
-
-/* ---------------- AUTO SAVE ---------------- */
-function autoSaveNote() {
-    if (!currentNoteType || !noteEditor) return;
-
-    notes[currentNoteType] = noteEditor.innerHTML;
-    localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-    syncNotesToCloud();
-}
 
 
 

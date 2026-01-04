@@ -818,3 +818,30 @@ main {
 
 
 
+
+
+
+
+
+
+
+
+/* This forces the button to the front of the screen */
+button {
+    pointer-events: auto !important;
+    z-index: 10000 !important;
+}
+
+#noteModal {
+    pointer-events: auto !important;
+    z-index: 9999;
+}
+
+
+
+
+
+
+
+
+

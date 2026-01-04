@@ -153,8 +153,9 @@
                 onclick="document.getElementById('profileModal').style.display='none'">Close Profile</button>
         </div>
     </div>
-    <div class="modal" id="noteModal">
-        <div class="modal-content" style="width: 700px;">
+    <div class="modal" id="noteModal" style="z-index: 2000;">
+        <div class="modal-content" style="width: 700px; position: relative;">
+            <span class="close-btn" onclick="closeNote()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #666;">&times;</span>
             <h3 id="noteType">Note</h3>
             <div class="toolbar">
                 <select onchange="execCmd('fontSize', this.value)">
