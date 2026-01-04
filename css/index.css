@@ -1,8 +1,8 @@
 :root {
   --sidebar-width: 280px;
-  --primary: #32e026;
+  --primary: #109e6e;
   --primary-soft: rgba(16, 185, 129, 0.1);
-  --primary-dark: #32e026;
+  --primary-dark: #109e6e;
   --bg-dark: #020617;
   --card-bg: rgba(15, 23, 42, 0.8);
   --card-bg-hover: rgba(30, 41, 59, 0.9);
@@ -101,7 +101,36 @@ body::before {
   z-index: -1;
   pointer-events: none;
 }
+/* Export Dialog Styles */
+.export-option {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    width: 100%;
+}
 
+.export-option:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.export-option i {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+}
 .sidebar::-webkit-scrollbar {
   width: 6px;
 }
@@ -132,6 +161,10 @@ body::before {
   transition: var(--transition);
 }
 
+.fas {
+  color: white;
+}
+
 .logo {
   font-size: 24px;
   font-weight: 800;
@@ -159,6 +192,14 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.logo-text {
+  font-size: 1.7rem;
+  font-weight: 800;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--success);
 }
 
 .nav-section {
