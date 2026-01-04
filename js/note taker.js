@@ -2029,8 +2029,10 @@ function openExportDialog() {
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
                     <h2 style="color: #109e6e;"><i class="fas fa-download"></i> Export Notes</h2>
-                    <button class="close-modal" onclick="closeExportDialog()">
-                        <i class="fas fa-times"></i>
+                    <button class="close-modal animated-close" onclick="closeExportDialog()">
+                        <span class="close-icon">
+                            <i class="fas fa-times"></i>
+                        </span>
                     </button>
                 </div>
                 <div class="form-group">
@@ -2088,16 +2090,60 @@ function openExportDialog() {
                         </button>
                     </div>
                 </div>
-                <div class="form-actions">
-                    <button class="btn-secondary" onclick="closeExportDialog()">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                    <button class="btn-primary" onclick="executeExport()" id="executeExportBtn" disabled>
-                        <i class="fas fa-download"></i> Export Now
-                    </button>
+                <div class="form-actions floating-actions">
+                    <div class="action-group">
+                        <button class="btn-cancel glass-btn" onclick="closeExportDialog()">
+                            <span class="btn-icon">
+                                <i class="fas fa-times"></i>
+                            </span>
+                            <span class="btn-text">Cancel</span>
+                        </button>
+                        <button class="btn-export glow-btn" onclick="executeExport()" id="executeExportBtn" disabled>
+                            <span class="btn-content">
+                                <span class="btn-icon">
+                                    <i class="fas fa-download"></i>
+                                </span>
+                                <span class="btn-text">Export Now</span>
+                            </span>
+                            <span class="btn-shimmer"></span>
+                            <span class="pulse-dot"></span>
+                        </button>
+                    </div>
                 </div>
-                <div class="export-preview" id="exportPreview">
-                    <p><i class="fas fa-info-circle"></i> Select content and format to preview export</p>
+
+                <div class="export-preview preview-card" id="exportPreview">
+                    <div class="preview-header">
+                        <div class="preview-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <h4>Export Preview</h4>
+                            <p class="preview-subtitle">Real-time preview of your export</p>
+                        </div>
+                    </div>
+                    <div class="preview-body">
+                        <div class="preview-placeholder">
+                            <div class="placeholder-icon">
+                                <i class="fas fa-mouse-pointer"></i>
+                            </div>
+                            <p>Select content and format to preview export</p>
+                            <small class="placeholder-hint">
+                                <i class="fas fa-lightbulb"></i> The preview will update automatically
+                            </small>
+                        </div>
+                    </div>
+                    <div class="preview-footer">
+                        <div class="preview-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-file-alt"></i>
+                                <span>0 notes selected</span>
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-file"></i>
+                                <span>No format selected</span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
