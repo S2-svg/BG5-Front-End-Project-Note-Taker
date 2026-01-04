@@ -66,31 +66,26 @@ function renderMembers() {
         select.innerHTML += `<option value="${m.name}">${m.name}</option>`;
     });
 }
-
-// --- NOTE LOGIC (PIN & PERSISTENT STORAGE) ---
-let currentNoteType = '';
-function execCmd(command, value) { document.execCommand(command, false, value); }
-
 function openNote(type) {
-    currentNoteType = type;
-    renderNoteSidebar();
-    const isPinned = pinnedNotes.includes(type);
-    document.getElementById('noteType').innerHTML = `
+        currentNoteType = type;
+        renderNoteSidebar();
+        const isPinned = pinnedNotes.includes(type);
+        document.getElementById('noteType').innerHTML = `
             ${type} Notes 
             <i class="fas fa-thumbtack" id="pinBtn" style="cursor:pointer; margin-left:10px; color: ${isPinned ? 'var(--accent-blue)' : '#cbd5e1'}" 
                onclick="togglePin('${type}')"></i>
         `;
-    document.getElementById('noteEditor').innerHTML = notes[type] || "Start typing your " + type + " notes...";
-    document.getElementById('noteModal').style.display = 'flex';
-}
+        document.getElementById('noteEditor').innerHTML = notes[type] || "Start typing your " + type + " notes...";
+        document.getElementById('noteModal').style.display = 'flex';
+    }
 
-function saveNote() {
-    if (!currentNoteType) return;
-    notes[currentNoteType] = document.getElementById('noteEditor').innerHTML;
-    localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-    alert(currentNoteType + " note saved successfully!");
-    closeNote();
-}
+    function saveNote() {
+        if(!currentNoteType) return;
+        notes[currentNoteType] = document.getElementById('noteEditor').innerHTML;
+        localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
+        alert(currentNoteType + " note saved successfully!");
+        closeNote();
+    }
 
 function togglePin(type) {
     const index = pinnedNotes.indexOf(type);
@@ -663,8 +658,19 @@ document.addEventListener('DOMContentLoaded', () => {
 renderTasks();
 
 function closeNote() {
-    document.getElementById('noteModal').style.display = 'none';
-    currentNoteType = ''; // Reset current note type
+    const modal = document.getElementById('noteModal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Reset any active states if needed
+        currentNoteType = null;
+        // Clear any active formatting
+        document.execCommand('removeFormat', false, null);
+    }
+    // Also close any open color picker
+    const colorPicker = document.getElementById('colorPicker');
+    if (colorPicker) {
+        colorPicker.style.display = 'none';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -681,6 +687,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+
+
 // In the calendar generation code, update the date creation to make dates clickable
 function renderCalendar() {
     const calendarGrid = document.querySelector('.calendar-grid');
@@ -1211,9 +1220,25 @@ document.addEventListener('click', function (e) {
 });
 
 function openUpdateModal() {
-    document.getElementById('updateTitle').value = '';
-    document.getElementById('richNoteEditor').innerHTML = 'Start writing your update here...';
-    document.getElementById('updateModal').style.display = 'flex';
+    const titleInput = document.getElementById('updateTitle');
+    const editor = document.getElementById('richNoteEditor');
+    const modal = document.getElementById('updateModal');
+
+    if (titleInput) titleInput.value = '';
+    
+    if (editor) {
+        editor.innerHTML = ''; // Keep it empty so the label shows
+        // This attribute tells the CSS what text to show as a label
+        editor.setAttribute('data-label', '');
+    }
+
+    if (modal) modal.style.display = 'flex';
+}
+
+// Function to close the update modal
+function closeUpdateModal() {
+    const modal = document.getElementById('updateModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function closeUpdateModal() {
@@ -1483,11 +1508,6 @@ function showShareLink() {
     alert(window.location.href);
 }
 
-
-
-
-
-
 /* ---------------- FIREBASE INIT ---------------- */
 const firebaseConfig = {
     apiKey: "YOUR_KEY",
@@ -1498,6 +1518,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
 
 /* ---------------- ROOM / LINK ---------------- */
 function getRoomId() {
@@ -1544,52 +1565,177 @@ function listenActiveUsers() {
     });
 }
 
-setupPresence();
-listenActiveUsers();
-
-/* ---------------- NOTES SYNC ---------------- */
-/* assumes you already have:
-   let notes = {};
-   let currentNoteType;
-   let noteEditor;
-*/
-
-function syncNotesToCloud() {
-    db.ref(`rooms/${ROOM_ID}/notes`).set(notes);
+// Function to send note data to the cloud
+function syncNoteToFirebase(type, content) {
+    db.ref(`rooms/${ROOM_ID}/notes/${type}`).set({
+        content: content,
+        updatedBy: USER_ID,
+        timestamp: Date.now()
+    });
 }
 
-function listenNotesFromCloud() {
-    db.ref(`rooms/${ROOM_ID}/notes`).on('value', snap => {
-        if (snap.exists()) {
-            notes = snap.val();
-            localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-            if (currentNoteType && noteEditor) {
-                noteEditor.innerHTML = notes[currentNoteType] || '';
+// Listen for changes from friends
+function listenForRemoteNoteChanges() {
+    db.ref(`rooms/${ROOM_ID}/notes`).on('child_changed', (snapshot) => {
+        const data = snapshot.val();
+        const type = snapshot.key;
+        
+        // Only update if someone else made the change
+        if (data.updatedBy !== USER_ID) {
+            notes[type] = data.content;
+            if (currentNoteType === type) {
+                document.getElementById('noteEditor').innerHTML = data.content;
             }
         }
     });
 }
-
-listenNotesFromCloud();
-
-/* ---------------- AUTO SAVE ---------------- */
 function autoSaveNote() {
-    if (!currentNoteType || !noteEditor) return;
+    if (!currentNoteType) return;
+    const editor = document.getElementById('noteEditor');
+    const content = editor.innerHTML;
 
-    notes[currentNoteType] = noteEditor.innerHTML;
+    // Save locally first
+    notes[currentNoteType] = content;
     localStorage.setItem('teamSpaceNotes', JSON.stringify(notes));
-    syncNotesToCloud();
+
+    // SEND TO FRIENDS VIA FIREBASE
+    syncNoteToFirebase(currentNoteType, content);
+}
+
+function copyShareLink() {
+    const link = window.location.href;
+    navigator.clipboard.writeText(link).then(() => {
+        // Simple alert if you don't have the custom toast UI yet
+        alert("Link copied! Send this to your friends: " + link);
+        
+        // Optional: your existing toast logic
+        const toast = document.getElementById('copyToast');
+        if (toast) {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1500);
+        }
+    });
+}
+setupPresence();
+listenActiveUsers();
+function editTask(id) {
+    // 1. Find the specific task in the array
+    const taskToEdit = tasks.find(t => t.id === id);
+    
+    if (taskToEdit) {
+        // 2. Fill the modal inputs with existing data
+        document.getElementById('updateTitle').value = taskToEdit.title;
+        document.getElementById('richNoteEditor').innerHTML = taskToEdit.subtitle;
+        document.getElementById('taskPriority').value = taskToEdit.priority || 'Medium';
+        
+        // 3. Set the icon highlight in the modal
+        selectedIconClass = taskToEdit.icon || 'fa-tasks';
+        document.querySelectorAll('.icon-option').forEach(opt => {
+            opt.classList.remove('selected');
+            if (opt.querySelector(`.${selectedIconClass}`)) {
+                opt.classList.add('selected');
+            }
+        });
+
+        // 4. Change the "Save" behavior to UPDATE instead of CREATE
+        // We temporarily store the ID being edited on the save button
+        const saveBtn = document.querySelector('.modal-footer .btn-primary');
+        saveBtn.onclick = () => updateExistingTask(id);
+        
+        // 5. Open the modal (Use your existing open function name)
+        openUpdateModal(); 
+    }
+}
+function updateExistingTask(id) {
+    const index = tasks.findIndex(t => t.id === id);
+    if (index === -1) return;
+
+    const priority = document.getElementById('taskPriority').value;
+    const priorityColors = { 'Low': '#22c55e', 'Medium': '#eab308', 'High': '#ef4444' };
+
+    // Update the existing object
+    tasks[index].title = document.getElementById('updateTitle').value;
+    tasks[index].subtitle = document.getElementById('richNoteEditor').innerHTML;
+    tasks[index].priority = priority;
+    tasks[index].icon = selectedIconClass;
+    tasks[index].color = priorityColors[priority];
+
+    renderTasks();
+    closeUpdateModal();
+    
+    // Reset the save button back to the original "Create" mode
+    const saveBtn = document.querySelector('.modal-footer .btn-primary');
+    saveBtn.onclick = saveRichUpdate;
 }
 
 
+function saveAllData() {
+    const appState = {
+        generalNotes: notes,                 // Your 'Daily', 'Weekly', etc.
+        dateNotes: JSON.parse(localStorage.getItem('teamSpaceDateNotes')) || {},
+        tasks: tasks,                       // Your Kanban tasks
+        trash: trash,                       // Deleted items
+        members: members,                   // Team members
+        stickers: stickers,                 // Sticky notes
+        pinned: pinnedNotes,                // Which notes are pinned
+        lastSaved: new Date().toISOString()
+    };
 
+    localStorage.setItem('teamSpace_MasterData', JSON.stringify(appState));
+    console.log("All data synced to LocalStorage at: " + appState.lastSaved);
+}
 
+function loadAllData() {
+    const savedData = localStorage.getItem('teamSpace_MasterData');
+    
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        
+        // Restore each variable (use fallback to empty if data is missing)
+        notes = data.generalNotes || {};
+        tasks = data.tasks || [];
+        trash = data.trash || [];
+        members = data.members || [];
+        stickers = data.stickers || [];
+        pinnedNotes = data.pinned || [];
 
-
-
-
-
-
+        // Re-render the UI with the loaded data
+        renderTasks();
+        renderMembers();
+        renderStickers();
+        renderNoteSidebar();
+        updateTrashCount();
+        updateDashboardStats();
+    }
+}
+function downloadBackup() {
+    const dataStr = localStorage.getItem('teamSpace_MasterData');
+    if (!dataStr) {
+        alert("No data found to backup!");
+        return;
+    }
+    
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `teamspace_backup_${new Date().toLocaleDateString()}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+}
+// Change this at the top of your script
+let memberss = JSON.parse(localStorage.getItem('teamSpaceMembers')) || [];
+function addMember(name, role, telegram) {
+    const newMember = { name, role, telegram };
+    members.push(newMember);
+    
+    // SAVE TO LOCALSTORAGE
+    localStorage.setItem('teamSpaceMembers', JSON.stringify(members));
+    
+    renderMembers();
+}
 
 
 

@@ -123,6 +123,7 @@ header {
     font-size: 1.6rem;
     margin: 0;
     color: #0fad79;
+    
 }
 
 .logo-text p {
@@ -762,20 +763,6 @@ main {
     color: #3b82f6;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .share-menu {
     background: #fff;
     border-radius: 12px;
@@ -818,9 +805,54 @@ main {
 
 .active-users {
     font-size: 13px;
-    color: #64748b;
+    color: #e4690b;
     margin-left: 12px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* This forces the button to the front of the screen */
+button {
+    pointer-events: auto !important;
+    z-index: 10000 !important;
+}
+
+#noteModal {
+    pointer-events: auto !important;
+    z-index: 9999;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

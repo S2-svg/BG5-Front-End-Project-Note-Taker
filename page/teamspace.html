@@ -168,9 +168,6 @@
                     <option value="7">36</option>
                     <option value="7">40</option>
                     <option value="8">42</option>
-
-
-
                 </select>
                 <button onclick="execCmd('bold', null)"><i class="fas fa-bold"></i></button>
                 <button onclick="execCmd('italic', null)"><i class="fas fa-italic"></i></button>
@@ -415,7 +412,31 @@
         </div>
     </div>
 
-    <script src="./js/teamspace.js"></script>
+    <!-- Task Edit Modal -->
+    <div id="taskEditModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Edit Task</h3>
+                <button onclick="document.getElementById('taskEditModal').style.display='none'" 
+                        style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">
+                    &times;
+                </button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Title</label>
+                <input type="text" id="editTaskTitle" class="form-input" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Description</label>
+                <textarea id="editTaskDescription" class="form-input" style="width: 100%; min-height: 100px;"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn" onclick="document.getElementById('taskEditModal').style.display='none'; closeNotesSidebar();">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEditedTask()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
